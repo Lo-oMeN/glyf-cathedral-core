@@ -1,0 +1,12 @@
+{
+  "default_font": "Arial",
+  "default_size": 12,
+  "heading_font": "Calibri Light",
+  "heading_color": "#1F4E78",
+  "heading_1_size": 18,
+  "heading_2_size": 14,
+  "paragraphs": {
+    "font": "Arial",
+    "size": 11
+  }
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GLYF — CLAW (readable)</title>
+    <style>
+        body {
+            background: #0a0a1f;
+            color: #aaffaa;
+            font-family: monospace;
+            text-align: center;
+            padding: 20px;
+        }
+        canvas {
+            border: 2px solid #334;
+            background: #000;
+            box-shadow: 0 0 30px #44ff88;
+        }
+        button {
+            background: #112;
+            color: #aaffaa;
+            border: 2px solid #44ff88;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 15px;
+        }
+        button:hover {
+            background: #223;
+            box-shadow: 0 0 20px #44ff88;
+        }
+    </style>
+</head>
+<body>
+    <h1>GLYF: CLAW</h1>
+    <canvas id="c" width="800" height="800"></canvas>
+    <br>
+    <button onclick="morph()">Morph φ</button>
+    <div id="linear" style="margin-top: 20px; font-size: 18px; color: #88ffcc;">
+        Linear readable: GLY PHO BET ICS MIN DLO OM FORM EVO
+    </div>
+    <div style="margin-top: 30px; font-size: 14px; opacity: 0.7;">
+        5 Grammar Rules (reference):<br>
+        1. Center = core syllable (ICS) • 
+        2. Segments follow golden angle • 
+        3. Overlap ≥30% = fusion • 
+        4. Reading path: top→right→center→left→bottom→spirals • 
+        5. Morph unlocks new child meanings
+    </div>
+    <script>
+        const canvas = document.getElementById('c');
+        const ctx = canvas.getContext('2d');
+        const phi = (1 + Math.sqrt(5)) / 2;
+        let angle = 0;
+        
+        const syllables = [
+            {txt: 'GLY', a: 0},
+            {txt: 'PHO', a: Math.PI * 0.5},
+            {txt: 'BET', a: Math.PI},
+            {txt: 'MIN', a: Math.PI * 1.5},
+            {txt: 'DLO', a: Math.PI * 0.25},
+            {txt: 'OM', a: Math.PI * 0.75},
+            {txt: 'FORM', a: Math.PI * 1.25},
+            {txt: 'EVO', a: Math.PI * 1.75}
+        ];
+        
+        function draw() {
+            ctx.clearRect(0, 0, 800, 800);
+            const cx = 400, cy = 400, r = 220;
+            
+            // Vesica Piscis (two overlapping circles)
+            ctx.strokeStyle = '#44ff88';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(cx - 80, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(cx + 80, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Glowing core
+            ctx.fillStyle = '#ffdd44';
+            ctx.font = 'bold 32px monospace';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = '#ffdd44';
+            ctx.shadowBlur = 25;
+            ctx.fillText('ICS', cx, cy + 12);
+            ctx.shadowBlur = 0;
+            
+            // Geometric segments + readable syllables
+            ctx.strokeStyle = '#88aaff';
+            syllables.forEach((s, i) => {
+                const a = angle + s.a + i * (Math.PI * 2 / phi);
+                const x = cx + Math.cos(a) * 320;
+                const y = cy + Math.sin(a) * 320;
+                
+                // segment line
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                // syllable text placed on the arm
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 22px monospace';
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 12;
+                ctx.fillText(s.txt, x + Math.cos(a) * 35, y + Math.sin(a) * 35 + 8);
+                ctx.shadowBlur = 0;
+            });
+        }
+        
+        function morph() {
+            angle += 137.5 * Math.PI / 180; // exact golden angle
+            draw();
+        }
+        
+        draw();
+    </script>
+</body>
+</html>

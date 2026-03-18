@@ -1,0 +1,47 @@
+/* Design Tokens - Generated from Figma */
+/* Source: Design System */
+/* Generated: 2024-01-16T08:00:00Z */
+
+:root {
+  /* Colors */
+  --color-primary: #0070F0;
+  --color-secondary: #666666;
+  --color-background: #FFFFFF;
+  --color-text-primary: #000000E6;
+
+  /* Typography */
+  --font-size-heading-1: 32px;
+  --font-family-heading-1: Inter;
+  --font-weight-heading-1: 700;
+  --line-height-heading-1: 40px;
+  
+  --font-size-heading-2: 24px;
+  --font-family-heading-2: Inter;
+  --font-weight-heading-2: 600;
+  --line-height-heading-2: 32px;
+  
+  --font-size-body: 16px;
+  --font-family-body: Inter;
+  --font-weight-body: 400;
+  --line-height-body: 24px;
+  
+  --font-size-caption: 12px;
+  --font-family-caption: Inter;
+  --font-weight-caption: 400;
+  --line-height-caption: 16px;
+
+  /* Spacing */
+  --spacing-container-paddingleft: 24px;
+  --spacing-container-paddingright: 24px;
+  --spacing-container-paddingtop: 24px;
+  --spacing-container-paddingbottom: 24px;
+  
+  --spacing-card-paddingleft: 16px;
+  --spacing-card-paddingright: 16px;
+  --spacing-card-paddingtop: 16px;
+  --spacing-card-paddingbottom: 16px;
+
+  /* Effects */
+  --shadow-shadow-small: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+  --shadow-shadow-medium: 0px 4px 8px 0px rgba(0, 0, 0, 0.15);
+}

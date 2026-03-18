@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Φ-Loom — Trinary State Visualizer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --neg: #8b0000;      /* Contraction - crimson */
+            --zero: #1a1a2e;     /* Void - deep blue */
+            --pos: #ffd700;      /* Expansion - gold */
+            --bg: #0a0a0f;
+            --text: #e0e0ff;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'IBM Plex Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        header {
+            padding: 20px 40px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .brand {
+            font-family: 'Cinzel', serif;
+            font-size: 24px;
+            letter-spacing: 4px;
+            background: linear-gradient(90deg, var(--pos), var(--neg));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .kappa-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .kappa-label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            opacity: 0.6;
+        }
+        
+        .kappa-value {
+            font-size: 32px;
+            font-family: 'Cinzel', serif;
+            min-width: 100px;
+            text-align: right;
+        }
+        
+        /* Main layout */
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .panel {
+            background: var(--bg);
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .panel h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        /* State Grid */
+        .state-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .dimension-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        
+        .dim-cell {
+            aspect-ratio: 1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .dim-cell:hover {
+            border-color: rgba(255, 215, 0, 0.5);
+            transform: scale(1.05);
+        }
+        
+        .dim-cell.neg { background: rgba(139, 0, 0, 0.3); color: #ff4444; }
+        .dim-cell.zero { background: rgba(26, 26, 46, 0.8); color: #666; }
+        .dim-cell.pos { background: rgba(255, 215, 0, 0.2); color: #ffd700; }
+        
+        .dim-cell::after {
+            content: attr(data-idx);
+            position: absolute;
+            bottom: 4px;
+            right: 6px;
+            font-size: 9px;
+            opacity: 0.4;
+        }
+        
+        /* Threefold breakdown */
+        .threefold {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .aspect {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .aspect.positive { border-color: rgba(255, 215, 0, 0.3); }
+        .aspect.negative { border-color: rgba(139, 0, 0, 0.3); }
+        .aspect.void { border-color: rgba(100, 100, 150, 0.3); }
+        
+        .aspect-value {
+            font-size: 36px;
+            font-family: 'Cinzel', serif;
+            margin-bottom: 8px;
+        }
+        
+        .aspect-label {
+            font-size: 10px;
+            letter-spacing: 2px;
+            opacity: 0.6;
+        }
+        
+        /* Keys Panel */
+        .key {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .key:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 215, 0, 0.3);
+            transform: translateX(5px);
+        }
+        
+        .key.active {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--pos);
+        }
+        
+        .key-symbol {
+            font-size: 20px;
+            width: 32px;
+            text-align: center;
+        }
+        
+        .key-info {
+            flex: 1;
+        }
+        
+        .key-name {
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+        
+        .key-effect {
+            font-size: 9px;
+            opacity: 0.5;
+        }
+        
+        /* History Panel */
+        .history-log {
+            font-size: 11px;
+            line-height: 1.8;
+        }
+        
+        .history-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-entry .time {
+            opacity: 0.4;
+        }
+        
+        .history-entry .action {
+            color: var(--pos);
+        }
+        
+        /* Controls */
+        .controls {
+            padding: 20px 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text);
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--pos);
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--pos);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            main { grid-template-columns: 1fr 1fr; }
+            .panel:last-child { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">Φ-LOOM</div>
+        <div class="kappa-display">
+            <span class="kappa-label">COHERENCE κ</span>
+            <span class="kappa-value" id="kappa">0.000</span>
+        </div>
+    </header>
+    
+    <main>
+        <!-- Left: Keys -->
+        <div class="panel">
+            <h2>THE SEVEN KEYS</h2>
+            
+            <div id="keys">
+                <div class="key" onclick="applyKey(0)" data-key="0">
+                    <span class="key-symbol">🜁</span>
+                    <div class="key-info">
+                        <div class="key-name">ALIGNMENT</div>
+                        <div class="key-effect">Pull toward +1</div>
+                    </div>
+                </div>
+                
+                <div class="key" onclick="applyKey(1)" data-key="1">
+                    <span class="key-symbol">|</span>
+                    <div class="key-info">
+                        <div class="key-name">RECIPROCITY</div>
+                        <div class="key-effect">Golden blend</div>
+                    </div>
+                </div>
+                
+                <div class="key" onclick="applyKey(2)" data-key="2">
+                    <span class="key-symbol">△</span>
+                    <div class="key-info">
+                        <div class="key-name">INVERSION</div>
+                        <div class="key-effect">Flip signs</div>
+                    </div>
+                </div>
+                
+                <div class="key" onclick="applyKey(3)" data-key="3">
+                    <span class="key-symbol">□</span>
+                    <div class="key-info">
+                        <div class="key-name">SILENCE</div>
+                        <div class="key-effect">Return to void</div>
+                    </div>
+                </div>
+                
+                <div class="key" onclick="applyKey(4)" data-key="4">
+                    <span class="key-symbol">○</span>
+                    <div class="key-info">
+                        <div class="key-name">RESONANCE</div>
+                        <div class="key-effect">Oscillate</div>
+                    </div>
+                </div>
+                
+                <div class="key" onclick="applyKey(5)" data-key="5">
+                    <span class="key-symbol">🜚</span>
+                    <div class="key-info">
+                        <div class="key-name">EXCHANGE</div>
+                        <div class="key-effect">Intersect</div>
+                    </div>
+                </div>
+                
+                <div class="key" onclick="applyKey(6)" data-key="6">
+                    <span class="key-symbol">∅</span>
+                    <div class="key-info">
+                        <div class="key-name">CONCENTRATION</div>
+                        <div class="key-effect">Collapse</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Center: State -->
+        <div class="panel">
+            <h2>TRINARY STATE (16D)</h2>
+            
+            <div class="state-container">
+                <div class="dimension-grid" id="grid"></div>
+                
+                <div class="threefold">
+                    <div class="aspect positive">
+                        <div class="aspect-value" id="posCount">0</div>
+                        <div class="aspect-label">THESIS (+)</div>
+                    </div>
+                    
+                    <div class="aspect void">
+                        <div class="aspect-value" id="voidCount">0</div>
+                        <div class="aspect-label">VOID (○)</div>
+                    </div>
+                    
+                    <div class="aspect negative">
+                        <div class="aspect-value" id="negCount">0</div>
+                        <div class="aspect-label">ANTITHESIS (−)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right: History -->
+        <div class="panel">
+            <h2>HISTORY</h2>
+            <div class="history-log" id="history"></div>
+        </div>
+    </main>
+    
+    <div class="controls">
+        <button onclick="randomize()">RANDOMIZE</button>
+        <button onclick="zero()">ZERO</button>
+        
+        <input type="text" id="textInput" placeholder="Type to hash into state..." 
+               onkeypress="if(event.key==='Enter')textToState()">
+        
+        <button onclick="textToState()">HASH</button>
+    </div>
+    
+    <script>
+        // Trinary State Visualizer
+        const DIM = 16;
+        let state = new Array(DIM).fill(0);
+        let history = [];
+        
+        // Initialize grid
+        function initGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < DIM; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'dim-cell';
+                cell.dataset.idx = i;
+                cell.onclick = () => toggleCell(i);
+                grid.appendChild(cell);
+            }
+            updateDisplay();
+        }
+        
+        // Toggle cell value (-1 -> 0 -> +1)
+        function toggleCell(idx) {
+            state[idx] = ((state[idx] + 2) % 3) - 1;  // -1 -> 0 -> +1 -> -1
+            updateDisplay();
+            logAction(`Manual: D${idx} = ${state[idx] > 0 ? '+' : state[idx] < 0 ? '−' : '○'}`);
+        }
+        
+        // Update display
+        function updateDisplay() {
+            const cells = document.querySelectorAll('.dim-cell');
+            const symbols = { '-1': '−', '0': '○', '1': '+' };
+            
+            cells.forEach((cell, i) => {
+                cell.textContent = symbols[state[i]];
+                cell.className = 'dim-cell ' + (state[i] < 0 ? 'neg' : state[i] > 0 ? 'pos' : 'zero');
+            });
+            
+            // Threefold counts
+            const pos = state.filter(x => x > 0).length;
+            const neg = state.filter(x => x < 0).length;
+            const void_ = state.filter(x => x === 0).length;
+            
+            document.getElementById('posCount').textContent = pos;
+            document.getElementById('negCount').textContent = neg;
+            document.getElementById('voidCount').textContent = void_;
+            
+            // Coherence
+            const balance = pos + neg;
+            const kappa = balance > 0 ? (pos - neg) / balance : 0;
+            document.getElementById('kappa').textContent = kappa.toFixed(3);
+            document.getElementById('kappa').style.color = kappa > 0 ? 'var(--pos)' : kappa < 0 ? 'var(--neg)' : 'var(--text)';
+        }
+        
+        // Apply key
+        function applyKey(keyIdx) {
+            const keyNames = ['Alignment', 'Reciprocity', 'Inversion', 'Silence', 'Resonance', 'Exchange', 'Concentration'];
+            
+            // Visual feedback
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+            document.querySelector(`[data-key="${keyIdx}"]`).classList.add('active');
+            
+            const oldState = [...state];
+            
+            switch(keyIdx) {
+                case 0: // Alignment
+                    state = state.map(x => x < 1 ? Math.min(x + 1, 1) : x);
+                    break;
+                case 1: // Reciprocity
+                    state = state.map(() => Math.random() > 0.6 ? 1 : Math.random() > 0.5 ? -1 : 0);
+                    break;
+                case 2: // Inversion
+                    state = state.map(x => -x);
+                    break;
+                case 3: // Silence
+                    state = state.map(x => Math.random() > 0.618 ? x : 0);
+                    break;
+                case 4: // Resonance
+                    state = state.map(x => {
+                        if (x === 1) return 0;
+                        if (x === 0) return -1;
+                        return 0;
+                    });
+                    break;
+                case 5: // Exchange
+                    state = state.map((x, i) => x === oldState[(i + 8) % 16] ? x : 0);
+                    break;
+                case 6: // Concentration
+                    const pos = state.filter(x => x > 0).length;
+                    const neg = state.filter(x => x < 0).length;
+                    const dominant = pos >= neg ? 1 : -1;
+                    state = new Array(DIM).fill(dominant);
+                    break;
+            }
+            
+            updateDisplay();
+            logAction(`Key ${keyIdx}: ${keyNames[keyIdx]}`);
+        }
+        
+        // Randomize
+        function randomize() {
+            state = state.map(() => Math.floor(Math.random() * 3) - 1);
+            updateDisplay();
+            logAction('Randomized');
+        }
+        
+        // Zero
+        function zero() {
+            state = new Array(DIM).fill(0);
+            updateDisplay();
+            logAction('Zeroed (Void)');
+        }
+        
+        // Text to state
+        function textToState() {
+            const text = document.getElementById('textInput').value;
+            if (!text) return;
+            
+            // Hash text to seed
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) {
+                hash = ((hash << 5) - hash) + text.charCodeAt(i);
+                hash |= 0;
+            }
+            
+            // Generate state from hash
+            const rng = mulberry32(hash);
+            state = state.map(() => {
+                const r = rng();
+                return r > 0.6 ? 1 : r > 0.4 ? 0 : -1;
+            });
+            
+            updateDisplay();
+            logAction(`Text: "${text.substring(0, 20)}${text.length > 20 ? '...' : ''}"`);
+            document.getElementById('textInput').value = '';
+        }
+        
+        // PRNG
+        function mulberry32(a) {
+            return function() {
+                let t = a += 0x6D2B79F5;
+                t = Math.imul(t ^ t >>> 15, t | 1);
+                t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            }
+        }
+        
+        // Log action
+        function logAction(action) {
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            history.unshift({ time, action });
+            if (history.length > 20) history.pop();
+            
+            const logEl = document.getElementById('history');
+            logEl.innerHTML = history.map(h => `
+                <div class="history-entry">
+                    <span class="time">${h.time}</span>
+                    <span class="action">${h.action}</span>
+                </div>
+            `).join('');
+        }
+        
+        // Init
+        randomize();
+    </script>
+</body>
+</html>

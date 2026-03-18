@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "company": "Tech Corp",
+    "amount": 1500,
+    "status": "Approved"
+  },
+  {
+    "name": "Bob Smith",
+    "email": "bob@example.com",
+    "company": "Design Studio",
+    "amount": 2200,
+    "status": "Pending"
+  },
+  {
+    "name": "Carol White",
+    "email": "carol@example.com",
+    "company": "Marketing Inc",
+    "amount": 1800,
+    "status": "Approved"
+  }
+]

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessible Page Demo - WCAG Compliant</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background: #fff;
+        }
+        
+        /* Good contrast - 12:1 ratio */
+        h1, h2, h3 {
+            color: #000;
+            margin-top: 1.5em;
+        }
+        
+        h1 {
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 0.3em;
+        }
+        
+        /* Skip link for keyboard users */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #0066cc;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+        
+        .skip-link:focus {
+            top: 0;
+        }
+        
+        /* Visible focus indicators */
+        a:focus, button:focus, input:focus, select:focus, textarea:focus {
+            outline: 3px solid #0066cc;
+            outline-offset: 2px;
+        }
+        
+        /* Good contrast for links */
+        a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        
+        a:hover, a:focus {
+            color: #004499;
+        }
+        
+        /* Form styling */
+        .form-group {
+            margin-bottom: 1.5em;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #666;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #0066cc;
+        }
+        
+        /* Button with good contrast */
+        button, .btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover, .btn:hover,
+        button:focus, .btn:focus {
+            background: #004499;
+        }
+        
+        /* Error styling */
+        .error {
+            color: #d32f2f;
+            font-size: 0.9em;
+            margin-top: 0.3em;
+        }
+        
+        /* Navigation */
+        nav ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            gap: 20px;
+        }
+        
+        nav a {
+            padding: 8px 12px;
+        }
+        
+        /* Table with proper headers */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+        }
+        
+        /* Image styling */
+        figure {
+            margin: 1.5em 0;
+        }
+        
+        figcaption {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-top: 0.5em;
+        }
+        
+        /* Status messages */
+        .status {
+            padding: 12px;
+            border-radius: 4px;
+            margin: 1em 0;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
+        <nav role="navigation" aria-label="Main navigation">
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+        <h1>Accessible Page Demo</h1>
+    </header>
+    
+    <main id="main-content" role="main">
+        <section id="about" aria-labelledby="about-heading">
+            <h2 id="about-heading">About This Page</h2>
+            <p>This page demonstrates proper WCAG 2.1 AA compliance. It includes:</p>
+            <ul>
+                <li>Proper semantic HTML structure</li>
+                <li>Sufficient color contrast (12:1 ratio)</li>
+                <li>Descriptive alt text for images</li>
+                <li>Form labels and error handling</li>
+                <li>Keyboard navigation support</li>
+                <li>ARIA landmarks and labels</li>
+            </ul>
+            
+            <!-- Accessible image with descriptive alt text -->
+            <figure>
+                <img src="https://via.placeholder.com/400x200/0066cc/ffffff?text=Accessible+Design" 
+                     alt="Diagram showing the four principles of accessibility: Perceivable, Operable, Understandable, and Robust">
+                <figcaption>Figure 1: The four pillars of web accessibility (POUR)</figcaption>
+            </figure>
+        </section>
+        
+        <section id="services" aria-labelledby="services-heading">
+            <h2 id="services-heading">Our Services</h2>
+            
+            <!-- Accessible table with proper headers -->
+            <table role="table" aria-label="Service pricing and availability">
+                <thead>
+                    <tr>
+                        <th scope="col">Service</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Accessibility Audit</td>
+                        <td>Full WCAG 2.1 compliance review</td>
+                        <td>$500</td>
+                    </tr>
+                    <tr>
+                        <td>Remediation Support</td>
+                        <td>Fix implementation assistance</td>
+                        <td>$100/hour</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <section id="contact" aria-labelledby="contact-heading">
+            <h2 id="contact-heading">Contact Us</h2>
+            
+            <!-- Accessible form with proper labels -->
+            <form action="/submit" method="POST" novalidate>
+                <div class="form-group">
+                    <label for="name">Full Name <span aria-label="required">*</span></label>
+                    <input type="text" id="name" name="name" required 
+                           aria-required="true" aria-describedby="name-error">
+                    <div id="name-error" class="error" role="alert" aria-live="polite"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address <span aria-label="required">*</span></label>
+                    <input type="email" id="email" name="email" required 
+                           aria-required="true" autocomplete="email"
+                           aria-describedby="email-error email-help">
+                    <div id="email-help">We'll never share your email with anyone else.</div>
+                    <div id="email-error" class="error" role="alert" aria-live="polite"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject" name="subject">
+                        <option value="">Select a subject...</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="audit">Accessibility Audit</option>
+                        <option value="support">Remediation Support</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Message <span aria-label="required">*</span></label>
+                    <textarea id="message" name="message" rows="5" required 
+                              aria-required="true" aria-describedby="message-error"></textarea>
+                    <div id="message-error" class="error" role="alert" aria-live="polite"></div>
+                </div>
+                
+                <button type="submit">Send Message</button>
+            </form>
+            
+            <div class="status status-success" role="status" aria-live="polite" style="display: none;" id="success-message">
+                Your message has been sent successfully!
+            </div>
+        </section>
+    </main>
+    
+    <footer role="contentinfo">
+        <p>&copy; 2024 Accessible Demo. All rights reserved.</p>
+        <p><a href="/privacy">Privacy Policy</a> | <a href="/terms">Terms of Service</a></p>
+    </footer>
+</body>
+</html>

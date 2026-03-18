@@ -1,0 +1,6 @@
+Product,Category,Q1 Sales,Q2 Sales,Q3 Sales,Q4 Sales
+Product A,Software,120000,135000,142000,158000
+Product B,Software,95000,102000,115000,128000
+Product C,Services,80000,85000,92000,98000
+Product D,Hardware,65000,68000,72000,75000
+Product E,Software,45000,52000,58000,65000

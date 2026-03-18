@@ -1,0 +1,21 @@
+#!/bin/bash
+# CI/CD Pipeline Skill Wrapper Script
+# Usage: cicd-pipeline <command> [options]
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="$SCRIPT_DIR/scripts/cicd_pipeline.py"
+
+# Check Python availability
+if ! command -v python3 &> /dev/null; then
+    echo "Error: Python 3 is required but not installed."
+    exit 1
+fi
+
+# Check dependencies
+python3 -c "import yaml" 2>/dev/null || {
+    echo "Installing required dependencies..."
+    pip install pyyaml PyGithub -q
+}
+
+# Run the Python script with all arguments
+exec python3 "$PYTHON_SCRIPT" "$@"

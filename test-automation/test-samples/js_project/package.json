@@ -1,0 +1,17 @@
+{
+  "name": "js_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "stringUtils.js",
+  "scripts": {
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "nyc": "^18.0.0"
+  }
+}

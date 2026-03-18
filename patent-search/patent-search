@@ -1,0 +1,6 @@
+#!/bin/bash
+# Patent Search Skill Wrapper
+# Main entry point for the patent-search skill
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$SCRIPT_DIR/scripts/patent_search.py" "$@"

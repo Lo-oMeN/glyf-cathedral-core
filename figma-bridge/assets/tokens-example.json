@@ -1,0 +1,97 @@
+{
+  "colors": {
+    "primary": {
+      "value": "rgba(0, 112, 240, 1)",
+      "hex": "#0070F0",
+      "raw": {"r": 0, "g": 0.44, "b": 0.94, "a": 1}
+    },
+    "secondary": {
+      "value": "rgba(102, 102, 102, 1)",
+      "hex": "#666666",
+      "raw": {"r": 0.4, "g": 0.4, "b": 0.4, "a": 1}
+    },
+    "background": {
+      "value": "rgba(255, 255, 255, 1)",
+      "hex": "#FFFFFF",
+      "raw": {"r": 1, "g": 1, "b": 1, "a": 1}
+    },
+    "text-primary": {
+      "value": "rgba(0, 0, 0, 0.9)",
+      "hex": "#000000E6",
+      "raw": {"r": 0, "g": 0, "b": 0, "a": 0.9}
+    }
+  },
+  "typography": {
+    "heading-1": {
+      "fontFamily": "Inter",
+      "fontSize": 32,
+      "fontWeight": 700,
+      "lineHeight": 40,
+      "letterSpacing": -0.5,
+      "textAlign": "LEFT"
+    },
+    "heading-2": {
+      "fontFamily": "Inter",
+      "fontSize": 24,
+      "fontWeight": 600,
+      "lineHeight": 32,
+      "letterSpacing": -0.25,
+      "textAlign": "LEFT"
+    },
+    "body": {
+      "fontFamily": "Inter",
+      "fontSize": 16,
+      "fontWeight": 400,
+      "lineHeight": 24,
+      "letterSpacing": 0,
+      "textAlign": "LEFT"
+    },
+    "caption": {
+      "fontFamily": "Inter",
+      "fontSize": 12,
+      "fontWeight": 400,
+      "lineHeight": 16,
+      "letterSpacing": 0.2,
+      "textAlign": "LEFT"
+    }
+  },
+  "spacing": {
+    "container": {
+      "paddingLeft": 24,
+      "paddingRight": 24,
+      "paddingTop": 24,
+      "paddingBottom": 24,
+      "itemSpacing": 16,
+      "layoutMode": "VERTICAL"
+    },
+    "card": {
+      "paddingLeft": 16,
+      "paddingRight": 16,
+      "paddingTop": 16,
+      "paddingBottom": 16,
+      "itemSpacing": 12,
+      "layoutMode": "VERTICAL"
+    }
+  },
+  "effects": {
+    "shadow-small": {
+      "type": "DROP_SHADOW",
+      "color": {"r": 0, "g": 0, "b": 0, "a": 0.1},
+      "offset": {"x": 0, "y": 2},
+      "radius": 4,
+      "spread": 0
+    },
+    "shadow-medium": {
+      "type": "DROP_SHADOW",
+      "color": {"r": 0, "g": 0, "b": 0, "a": 0.15},
+      "offset": {"x": 0, "y": 4},
+      "radius": 8,
+      "spread": 0
+    }
+  },
+  "metadata": {
+    "file_name": "Design System",
+    "last_modified": "2024-01-15T10:30:00Z",
+    "extracted_at": "2024-01-16T08:00:00Z"
+  }
+}

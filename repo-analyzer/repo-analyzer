@@ -1,0 +1,80 @@
+#!/bin/bash
+#
+# Repo Analyzer - OpenClaw Skill Wrapper
+# Main entry point for the repo-analyzer skill
+#
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ANALYZER_PY="$SCRIPT_DIR/scripts/repo_analyzer.py"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to check if Python dependencies are installed
+check_dependencies() {
+    python3 -c "import tree_sitter, sentence_transformers, numpy" 2>/dev/null || {
+        echo -e "${YELLOW}Installing Python dependencies...${NC}"
+        pip3 install -q -r "$SCRIPT_DIR/scripts/requirements.txt"
+    }
+}
+
+# Function to show usage
+show_usage() {
+    cat << EOF
+Repo Analyzer - Deep codebase indexing and semantic search
+
+Usage: repo-analyzer <command> [options]
+
+Commands:
+    index <repo_path> [--languages LANG1 LANG2 ...]
+        Build a searchable index of the repository
+        
+    search <repo_name> <query> [--n-results N]
+        Semantic search across code
+        
+    find-symbol <repo_name> <symbol_name>
+        Locate functions, classes, variables by name
+        
+    call-graph <repo_name> <function_name>
+        Get call graph (callers and callees) for a function
+        
+    analyze-complexity <repo_path> <file_path>
+        Analyze cyclomatic complexity of a file
+        
+    export-graph <repo_name> <output_path>
+        Export dependency graph for visualization
+
+Examples:
+    repo-analyzer index ./my-project --languages python javascript
+    repo-analyzer search my-project "authentication logic"
+    repo-analyzer find-symbol my-project User
+    repo-analyzer call-graph my-project validate_token
+    repo-analyzer analyze-complexity ./my-project src/utils.py
+    repo-analyzer export-graph my-project ./call-graph
+
+Index Storage:
+    Indexes are stored in ~/.openclaw/repo-indexes/
+
+EOF
+}
+
+# Main command dispatcher
+case "${1:-}" in
+    index|search|find-symbol|call-graph|analyze-complexity|export-graph)
+        check_dependencies
+        python3 "$REPO_ANALYZER_PY" "$@"
+        ;;
+    --help|-h|help)
+        show_usage
+        ;;
+    *)
+        echo -e "${RED}Error: Unknown command '${1:-}'${NC}"
+        show_usage
+        exit 1
+        ;;
+esac

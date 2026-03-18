@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bad Page</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 20px;
+        }
+        
+        /* Very poor contrast - fails WCAG */
+        .light-gray-text {
+            color: #ccc;
+            background: #fff;
+        }
+        
+        .poor-contrast {
+            color: #999;
+            background: #eee;
+        }
+        
+        /* No focus indicators */
+        a, button {
+            outline: none;
+            text-decoration: none;
+        }
+        
+        /* Buttons without proper styling */
+        .clickable {
+            background: #ddd;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        /* Form elements without labels */
+        input, select, textarea {
+            border: 1px solid #999;
+            padding: 5px;
+        }
+        
+        /* Color-only indicators */
+        .status-red {
+            color: red;
+        }
+        
+        .status-green {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <!-- No skip link -->
+    
+    <div>
+        <!-- Image without alt text -->
+        <img src="https://via.placeholder.com/300x150" width="300" height="150">
+        <!-- Another image without alt -->
+        <img src="https://via.placeholder.com/200x100/ff0000/ffffff?text=Logo" 
+             onclick="alert('clicked')">
+    </div>
+    
+    <!-- Poor heading structure - skips levels -->
+    <h1>Welcome</h1>
+    <h4>About Us</h4>
+    <p class="light-gray-text">This text has very poor contrast and is hard to read.</p>
+    
+    <h6>Our Services</h6>
+    <p class="poor-contrast">More text with insufficient color contrast ratios.</p>
+    
+    <!-- Clickable divs without proper roles -->
+    <div onclick="window.location='/about'" class="clickable">Go to About Page</div>
+    
+    <!-- Empty links -->
+    <a href="/home"></a>
+    <a href="/contact"> </a>
+    
+    <!-- Links with no text -->
+    <a href="https://example.com"><img src="icon.png"></a>
+    
+    <!-- Form without labels -->
+    <form>
+        <div>
+            <input type="text" placeholder="Enter name" name="username">
+        </div>
+        <div>
+            <input type="email" name="email">
+        </div>
+        <div>
+            <select name="country">
+                <option>USA</option>
+                <option>UK</option>
+            </select>
+        </div>
+        <div>
+            <textarea name="message"></textarea>
+        </div>
+        <!-- Button without accessible name -->
+        <button></i class="icon"></i></button>
+        <!-- Another button with icon only -->
+        <button onclick="submitForm()">→</button>
+    </form>
+    
+    <!-- Color-only status indicators (no text/icon) -->
+    <div>
+        <span class="status-red">●</span> Server Status
+        <span class="status-green">●</span> Database
+    </div>
+    
+    <!-- Table without headers -->
+    <table>
+        <tr>
+            <td>Product</td>
+            <td>Price</td>
+        </tr>
+        <tr>
+            <td>Widget</td>
+            <td>$10</td>
+        </tr>
+    </table>
+    
+    <!-- Iframe without title -->
+    <iframe src="https://example.com" width="300" height="200"></iframe>
+    
+    <!-- Duplicate ID attributes -->
+    <input id="field" type="text">
+    <input id="field" type="email">
+    
+    <!-- Auto-playing audio (simulated) -->
+    <video autoplay muted loop>
+        <source src="video.mp4">
+    </video>
+    
+    <!-- Elements with tabindex > 0 -->
+    <div tabindex="5">Custom tab order element</div>
+    <div tabindex="1">Another custom tab order</div>
+    
+    <!-- Interactive element without keyboard support -->
+    <span onclick="doSomething()" style="color: blue; cursor: pointer;">Click here</span>
+    
+    <!-- Missing language attribute on html tag -->
+    <!-- No main landmark -->
+    <!-- No document title update on route change -->
+    
+    <script>
+        function submitForm() {
+            alert('Submitted!');
+        }
+        
+        function doSomething() {
+            console.log('done');
+        }
+    </script>
+</body>
+</html>

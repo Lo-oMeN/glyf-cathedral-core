@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLYF Visualizer — Readable Glyphoform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --phi: 1.618033988749895;
+            --golden-angle: 137.5077640500378deg;
+            --glow-cyan: 0 0 30px rgba(6, 182, 212, 0.6);
+            --glow-amber: 0 0 30px rgba(251, 191, 36, 0.5);
+        }
+        
+        body {
+            font-family: 'Cinzel', serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glyph-canvas {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            margin: 0 auto;
+        }
+        
+        /* The 7-segment grid lines */
+        .segment-line {
+            position: absolute;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(6, 182, 212, 0.3) 20%, 
+                rgba(6, 182, 212, 0.8) 50%, 
+                rgba(6, 182, 212, 0.3) 80%, 
+                transparent 100%
+            );
+            transform-origin: center;
+            transition: all 0.5s ease;
+        }
+        
+        .segment-line.active {
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(251, 191, 36, 0.5) 20%, 
+                rgba(251, 191, 36, 1) 50%, 
+                rgba(251, 191, 36, 0.5) 80%, 
+                transparent 100%
+            );
+            box-shadow: var(--glow-amber);
+        }
+        
+        /* Syllable text on segments */
+        .syllable-text {
+            position: absolute;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 14px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+            white-space: nowrap;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+        
+        .syllable-text:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            background: rgba(6, 182, 212, 0.2);
+            border-color: rgba(6, 182, 212, 0.8);
+            z-index: 100;
+        }
+        
+        .syllable-text.primary {
+            font-size: 18px;
+            color: #fbbf24;
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.8);
+        }
+        
+        .syllable-text.core {
+            font-size: 20px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 40px rgba(6, 182, 212, 0.5);
+        }
+        
+        .syllable-text.silent {
+            color: rgba(255, 255, 255, 0.3);
+            font-style: italic;
+            border-style: dashed;
+        }
+        
+        /* Vesica Piscis center */
+        .vesica {
+            position: absolute;
+            width: 120px;
+            height: 80px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 2px solid rgba(251, 191, 36, 0.5);
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, 
+                rgba(251, 191, 36, 0.1) 0%, 
+                transparent 70%
+            );
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.2);
+        }
+        
+        .vesica::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 50%;
+            transform: rotate(90deg);
+            left: 0;
+            top: 0;
+        }
+        
+        /* Spiral arms */
+        .spiral-arm {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 50%;
+        }
+        
+        .spiral-arm::before {
+            content: '';
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 50%;
+            top: 10%;
+            left: 10%;
+        }
+        
+        /* Phi lattice background */
+        .phi-lattice {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+            background-size: calc(100% / 1.618) calc(100% / 1.618);
+            opacity: 0.5;
+        }
+        
+        /* Reading path animation */
+        @keyframes pathPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        .reading-path {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #fbbf24;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #fbbf24;
+            animation: pathPulse 1s ease-in-out infinite;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+        }
+        
+        /* Controls */
+        .control-panel {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+        
+        input[type="text"] {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            color: #fff;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+        
+        button {
+            font-family: 'Cinzel', serif;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.4);
+        }
+        
+        /* Linear readable output */
+        .linear-output {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Morphogen states */
+        .morphogen-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.4);
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-amber-400 to-cyan-400 mb-2">
+                GLYF Visualizer
+            </h1>
+            <p class="text-gray-400 text-sm">Glyphoform — Readable Geometric Language</p>
+            <div class="mt-2 text-xs text-gray-500 font-mono">v1.4 | φ = 1.618...</div>
+        </header>
+
+        <!-- Main Visualizer -->
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+            <!-- Canvas Area -->
+            <div class="flex-1 flex justify-center">
+                <div class="relative">
+                    <div id="glyphCanvas" class="glyph-canvas">
+                        <div class="phi-lattice"></div>
+                        <div class="vesica"></div>
+                        <!-- Segments and text will be generated here -->
+                    </div>
+                    
+                    <!-- Reading Path Indicator -->
+                    <div id="readingPath" class="reading-path" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="w-full lg:w-96 control-panel rounded-lg p-6">
+                <h2 class="text-xl font-bold text-amber-400 mb-4">Glyph Input</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1 font-mono">PHRASE TO GLYPHIFY</label>
+                        <input type="text" id="phraseInput" 
+                               class="w-full px-4 py-3 rounded-lg text-sm"
+                               placeholder="claw agent learn glyph o form now"
+                               value="glyphobetics mindloom form evolution resonate">
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="generateGlyph()" 
+                                class="flex-1 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white py-3 rounded-lg font-bold">
+                            Generate Glyph
+                        </button>
+                        <button onclick="animateMorph()" 
+                                class="flex-1 bg-gradient-to-r from-amber-600 to-amber-500 text-white py-3 rounded-lg font-bold">
+                            Morph φ
+                        </button>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="loadExample(1)" class="px-3 py-2 bg-gray-800 rounded text-xs hover:bg-gray-700">
+                            Ex 1: ALIGN
+                        </button>
+                        <button onclick="loadExample(2)" class="px-3 py-2 bg-gray-800 rounded text-xs hover:bg-gray-700">
+                            Ex 2: CLAW
+                        </button>
+                        <button onclick="loadExample(3)" class="px-3 py-2 bg-gray-800 rounded text-xs hover:bg-gray-700">
+                            Ex 3: VOID
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Output Section -->
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <h3 class="text-sm font-bold text-cyan-400 mb-2">Linear Readable</h3>
+                    <div id="linearOutput" class="linear-output text-amber-300 text-sm p-3 bg-black/30 rounded">
+                        —
+                    </div>
+                    
+                    <h3 class="text-sm font-bold text-cyan-400 mt-4 mb-2">Glyph Metadata</h3>
+                    <div class="text-xs font-mono space-y-1 text-gray-400">
+                        <div class="flex justify-between">
+                            <span>Segments:</span>
+                            <span id="segmentCount" class="text-white">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Fusions:</span>
+                            <span id="fusionCount" class="text-white">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Morphogen:</span>
+                            <span id="morphogenState" class="morphogen-badge">Seed</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Binary:</span>
+                            <span id="binarySize" class="text-white">0 bytes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="mt-6 pt-6 border-t border-gray-700">
+                    <h3 class="text-xs font-bold text-gray-500 mb-2">SYMBOL KEY</h3>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-amber-400 font-bold">TOP</span>
+                            <span class="text-gray-500">Primary</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white font-bold">CENTER</span>
+                            <span class="text-gray-500">Core</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-cyan-400">SIDE</span>
+                            <span class="text-gray-500">Supporting</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500 italic">[...]</span>
+                            <span class="text-gray-500">Silent</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grammar Rules Reference -->
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-5 gap-4 text-xs">
+            <div class="bg-black/30 p-4 rounded border border-cyan-900/50">
+                <div class="text-cyan-400 font-bold mb-1">Rule 1</div>
+                <div class="text-gray-500">Positional Meaning</div>
+                <div class="mt-2 text-gray-400">Top = primary, Center = core, Spirals = process</div>
+            </div>
+            <div class="bg-black/30 p-4 rounded border border-cyan-900/50">
+                <div class="text-cyan-400 font-bold mb-1">Rule 2</div>
+                <div class="text-gray-500">Emergent Composition</div>
+                <div class="mt-2 text-gray-400">30% overlap → auto-fuse into compound</div>
+            </div>
+            <div class="bg-black/30 p-4 rounded border border-cyan-900/50">
+                <div class="text-cyan-400 font-bold mb-1">Rule 3</div>
+                <div class="text-gray-500">Sequence-as-Process</div>
+                <div class="mt-2 text-gray-400">Reading order = unfolding narrative</div>
+            </div>
+            <div class="bg-black/30 p-4 rounded border border-cyan-900/50">
+                <div class="text-cyan-400 font-bold mb-1">Rule 4</div>
+                <div class="text-gray-500">Nesting-as-Hierarchy</div>
+                <div class="mt-2 text-gray-400">Inner syllables = child nodes</div>
+            </div>
+            <div class="bg-black/30 p-4 rounded border border-cyan-900/50">
+                <div class="text-cyan-400 font-bold mb-1">Rule 5</div>
+                <div class="text-gray-500">Absence-as-Presence</div>
+                <div class="mt-2 text-gray-400">Empty segments = silent resonance</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // GLYF Engine (JavaScript implementation)
+        const PHI = 1.618033988749895;
+        const PHI_ANGLE = 137.5077640500378;
+        
+        // 7-Segment Grid Layout
+        const SEGMENT_POSITIONS = {
+            1: { name: "top", x: 0, y: -180, role: "primary", label: "1·TOP" },
+            2: { name: "upper_right", x: 140, y: -90, role: "supporting", label: "2·UR" },
+            3: { name: "lower_right", x: 140, y: 90, role: "supporting", label: "3·LR" },
+            4: { name: "bottom", x: 0, y: 180, role: "grounding", label: "4·BOT" },
+            5: { name: "lower_left", x: -140, y: 90, role: "supporting", label: "5·LL" },
+            6: { name: "upper_left", x: -140, y: -90, role: "supporting", label: "6·UL" },
+            7: { name: "center", x: 0, y: 0, role: "core", label: "7·CORE" },
+            8: { name: "spiral_1", x: 220, y: 0, role: "process", label: "8·SPI" },
+            9: { name: "spiral_2", x: -220, y: 0, role: "process", label: "9·SPI" }
+        };
+        
+        const READING_ORDER = [1, 2, 3, 7, 6, 5, 4, 8, 9];
+        const MORPHOGENS = ["Seed", "Spiral", "Fold", "Resonate", "Chiral", "Flip", "Anchor"];
+        
+        let currentGlyph = null;
+        let currentMorphogen = 0;
+
+        function breakIntoSyllables(phrase) {
+            const words = phrase.toUpperCase().split(/\s+/).filter(w => w);
+            const syllables = [];
+            
+            for (const word of words) {
+                if (word === '_' || word === '-') {
+                    syllables.push('_'); // Silent marker
+                } else if (word.length <= 4) {
+                    syllables.push(word);
+                } else {
+                    // Simple syllable splitting
+                    for (let i = 0; i < word.length; i += 3) {
+                        syllables.push(word.slice(i, i + 3));
+                    }
+                }
+            }
+            return syllables;
+        }
+
+        function generateGlyph() {
+            const phrase = document.getElementById('phraseInput').value || 'glyphobetics';
+            const syllables = breakIntoSyllables(phrase);
+            
+            const glyph = {
+                source: phrase,
+                segments: [],
+                fusions: [],
+                morphogen: MORPHOGENS[currentMorphogen]
+            };
+            
+            // Assign syllables to segments
+            const usedIds = new Set();
+            
+            for (let i = 0; i < Math.min(syllables.length, READING_ORDER.length); i++) {
+                const segId = READING_ORDER[i];
+                const pos = SEGMENT_POSITIONS[segId];
+                const syllable = syllables[i];
+                
+                const segment = {
+                    id: segId,
+                    text: syllable === '_' ? `[PHI-RES-${segId}]` : syllable,
+                    x: pos.x,
+                    y: pos.y,
+                    role: pos.role,
+                    isSilent: syllable === '_',
+                    rotation: 0
+                };
+                
+                glyph.segments.push(segment);
+                usedIds.add(segId);
+            }
+            
+            // Fill empty segments with silent resonance
+            for (const segId of READING_ORDER) {
+                if (!usedIds.has(segId)) {
+                    const pos = SEGMENT_POSITIONS[segId];
+                    glyph.segments.push({
+                        id: segId,
+                        text: `[PHI-RES-${segId}]`,
+                        x: pos.x,
+                        y: pos.y,
+                        role: pos.role,
+                        isSilent: true,
+                        rotation: 0
+                    });
+                }
+            }
+            
+            // Sort by segment ID
+            glyph.segments.sort((a, b) => a.id - b.id);
+            
+            currentGlyph = glyph;
+            renderGlyph(glyph);
+            updateMetadata(glyph);
+        }
+
+        function renderGlyph(glyph) {
+            const canvas = document.getElementById('glyphCanvas');
+            
+            // Clear previous segments (keep lattice and vesica)
+            const oldSegments = canvas.querySelectorAll('.syllable-text, .segment-line, .spiral-arm');
+            oldSegments.forEach(el => el.remove());
+            
+            // Draw spiral arms if segments 8/9 have content
+            const hasSpiralContent = glyph.segments.some(s => (s.id === 8 || s.id === 9) && !s.isSilent);
+            if (hasSpiralContent) {
+                const spiral1 = document.createElement('div');
+                spiral1.className = 'spiral-arm';
+                spiral1.style.left = '120px';
+                spiral1.style.top = '200px';
+                canvas.appendChild(spiral1);
+                
+                const spiral2 = document.createElement('div');
+                spiral2.className = 'spiral-arm';
+                spiral2.style.left = '280px';
+                spiral2.style.top = '200px';
+                canvas.appendChild(spiral2);
+            }
+            
+            // Draw segment lines and text
+            for (const seg of glyph.segments) {
+                // Create text element
+                const textEl = document.createElement('div');
+                textEl.className = 'syllable-text';
+                
+                if (seg.role === 'primary') textEl.classList.add('primary');
+                else if (seg.role === 'core') textEl.classList.add('core');
+                else if (seg.isSilent) textEl.classList.add('silent');
+                
+                textEl.textContent = seg.text;
+                textEl.style.left = `calc(50% + ${seg.x * 0.8}px)`;
+                textEl.style.top = `calc(50% + ${seg.y * 0.8}px)`;
+                textEl.style.transform = `translate(-50%, -50%) rotate(${seg.rotation}deg)`;
+                
+                // Add tooltip
+                textEl.title = `Segment ${seg.id} (${seg.role})`;
+                
+                canvas.appendChild(textEl);
+                
+                // Draw connecting line (except for center)
+                if (seg.id !== 7 && !seg.isSilent) {
+                    const line = document.createElement('div');
+                    line.className = 'segment-line';
+                    line.style.width = '60px';
+                    line.style.height = '2px';
+                    line.style.left = `calc(50% + ${seg.x * 0.5}px)`;
+                    line.style.top = `calc(50% + ${seg.y * 0.8}px)`;
+                    
+                    // Calculate angle to center
+                    const angle = Math.atan2(-seg.y, -seg.x) * 180 / Math.PI;
+                    line.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+                    
+                    canvas.appendChild(line);
+                }
+            }
+            
+            // Update linear readable
+            const readableParts = glyph.segments
+                .sort((a, b) => READING_ORDER.indexOf(a.id) - READING_ORDER.indexOf(b.id))
+                .filter(s => !s.isSilent)
+                .map(s => s.text);
+            
+            document.getElementById('linearOutput').textContent = readableParts.join(' ') || '—';
+        }
+
+        function updateMetadata(glyph) {
+            document.getElementById('segmentCount').textContent = glyph.segments.length;
+            document.getElementById('fusionCount').textContent = glyph.fusions.length;
+            document.getElementById('morphogenState').textContent = glyph.morphogen;
+            
+            // Estimate binary size
+            const binarySize = JSON.stringify(glyph).length;
+            document.getElementById('binarySize').textContent = `${binarySize} bytes`;
+        }
+
+        function animateMorph() {
+            if (!currentGlyph) generateGlyph();
+            
+            currentMorphogen = (currentMorphogen + 1) % MORPHOGENS.length;
+            const newState = MORPHOGENS[currentMorphogen];
+            
+            // Apply golden angle rotation to spiral segments
+            for (const seg of currentGlyph.segments) {
+                if (seg.id === 8 || seg.id === 9) {
+                    seg.rotation = (seg.rotation + PHI_ANGLE) % 360;
+                }
+            }
+            
+            currentGlyph.morphogen = newState;
+            renderGlyph(currentGlyph);
+            updateMetadata(currentGlyph);
+            
+            // Show reading path animation
+            const pathIndicator = document.getElementById('readingPath');
+            pathIndicator.style.display = 'block';
+            
+            let step = 0;
+            const interval = setInterval(() => {
+                if (step >= READING_ORDER.length) {
+                    clearInterval(interval);
+                    pathIndicator.style.display = 'none';
+                    return;
+                }
+                
+                const segId = READING_ORDER[step];
+                const seg = currentGlyph.segments.find(s => s.id === segId);
+                if (seg) {
+                    pathIndicator.style.left = `calc(50% + ${seg.x * 0.8}px)`;
+                    pathIndicator.style.top = `calc(50% + ${seg.y * 0.8}px)`;
+                }
+                step++;
+            }, 500);
+        }
+
+        function loadExample(num) {
+            const examples = {
+                1: 'glyphobetics mindloom form evolution resonate',
+                2: 'claw agent learn glyph o form now',
+                3: 'claw _ form _ now'
+            };
+            
+            document.getElementById('phraseInput').value = examples[num];
+            generateGlyph();
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            generateGlyph();
+        };
+    </script>
+</body>
+</html>

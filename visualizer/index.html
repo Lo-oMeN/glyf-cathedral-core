@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Φ-Radial Loom — Geometric Language Visualizer</title>
+    <script src="https://unpkg.com/ganja.js/ganja.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0f;
+            color: #e0e0ff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 60px 1fr 200px;
+            height: 100vh;
+            gap: 1px;
+            background: #1a1a2e;
+        }
+        
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid #2a2a4e;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-symbol {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b35 50%, #8b0000 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+        }
+        
+        .logo h1 {
+            font-size: 18px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #ffd700, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .kappa-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .kappa-value {
+            font-size: 24px;
+            font-weight: 200;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .kappa-bar {
+            width: 150px;
+            height: 8px;
+            background: #2a2a4e;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .kappa-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6b35, #ffd700, #00ff88);
+            transition: width 0.3s ease;
+        }
+        
+        /* Sidebar Left - Controls */
+        .sidebar-left {
+            background: #13131f;
+            padding: 20px;
+            overflow-y: auto;
+            border-right: 1px solid #2a2a4e;
+        }
+        
+        .panel-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #6b6b9b;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            color: #8b8bbb;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            background: #1a1a2e;
+            border: 1px solid #2a2a4e;
+            border-radius: 6px;
+            color: #e0e0ff;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .input-group input[type="text"]:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
+        }
+        
+        .key-button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid #2a2a4e;
+            border-radius: 8px;
+            color: #e0e0ff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+        
+        .key-button:hover {
+            border-color: #ff6b35;
+            transform: translateX(3px);
+        }
+        
+        .key-button.active {
+            background: linear-gradient(135deg, #ff6b35 0%, #8b0000 100%);
+            border-color: #ffd700;
+        }
+        
+        .key-symbol {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+        
+        /* Main Canvas */
+        .main-canvas {
+            position: relative;
+            background: #0a0a0f;
+            overflow: hidden;
+        }
+        
+        #visualizer {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .overlay-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(19, 19, 31, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #2a2a4e;
+            font-size: 12px;
+            max-width: 250px;
+        }
+        
+        .overlay-info h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #6b6b9b;
+            margin-bottom: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .info-label {
+            color: #8b8bbb;
+        }
+        
+        .info-value {
+            color: #ffd700;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* Sidebar Right - Topology */
+        .sidebar-right {
+            background: #13131f;
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 1px solid #2a2a4e;
+        }
+        
+        .topology-view {
+            background: #1a1a2e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .topology-node {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .node-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+        }
+        
+        .node-status.warning {
+            background: #ff6b35;
+        }
+        
+        .node-status.critical {
+            background: #ff0000;
+        }
+        
+        /* Bottom Panel */
+        .bottom-panel {
+            grid-column: 1 / -1;
+            background: #13131f;
+            padding: 15px 20px;
+            border-top: 1px solid #2a2a4e;
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+        }
+        
+        .glyph-stream {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .glyph {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 1px solid #2a2a4e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        .module-slot {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px dashed #2a2a4e;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a4a7b;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .module-slot:hover {
+            border-color: #ff6b35;
+            color: #ff6b35;
+        }
+        
+        .module-slot.occupied {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-style: solid;
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0a0a0f;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a4e;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a3a6e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-symbol">Φ</div>
+                <h1>Φ-RADIAL LOOM</h1>
+            </div>
+            <div class="kappa-display">
+                <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #6b6b9b;">Coherence (κ)</span>
+                <span class="kappa-value" id="kappaValue">0.0000</span>
+                <div class="kappa-bar">
+                    <div class="kappa-fill" id="kappaFill" style="width: 0%"></div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Left Sidebar - Controls -->
+        <aside class="sidebar-left">
+            <div class="panel-title">Input Stream</div>
+            <div class="input-group">
+                <label>Enter Text</label>
+                <input type="text" id="textInput" placeholder="Type to visualize..." value="silence becomes fire">
+            </div>
+            
+            <div class="panel-title" style="margin-top: 25px;">The 7 Christ Keys</div>
+            <button class="key-button" onclick="activateKey(0)">
+                <span class="key-symbol">🜁</span>
+                <span>Alignment</span>
+            </button>
+            <button class="key-button" onclick="activateKey(1)">
+                <span class="key-symbol">|</span>
+                <span>Reciprocity</span>
+            </button>
+            <button class="key-button" onclick="activateKey(2)">
+                <span class="key-symbol">△</span>
+                <span>Inversion</span>
+            </button>
+            <button class="key-button" onclick="activateKey(3)">
+                <span class="key-symbol">□</span>
+                <span>Silence</span>
+            </button>
+            <button class="key-button" onclick="activateKey(4)">
+                <span class="key-symbol">○</span>
+                <span>Resonance</span>
+            </button>
+            <button class="key-button" onclick="activateKey(5)">
+                <span class="key-symbol">🜚</span>
+                <span>Exchange</span>
+            </button>
+            <button class="key-button" onclick="activateKey(6)">
+                <span class="key-symbol">∅</span>
+                <span>Concentration</span>
+            </button>
+            
+            <div class="panel-title" style="margin-top: 25px;">Visualization</div>
+            <div class="input-group">
+                <label>View Mode</label>
+                <select id="viewMode" style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #2a2a4e; color: #e0e0ff; border-radius: 6px;">
+                    <option value="multivector">16D Multivector</option>
+                    <option value="lattice">Bigram Lattice</option>
+                    <option value="resonance">Resonance Graph</option>
+                    <option value="keys">7 Keys Active</option>
+                </select>
+            </div>
+        </aside>
+        
+        <!-- Main Canvas -->
+        <main class="main-canvas">
+            <div id="visualizer"></div>
+            <div class="overlay-info">
+                <h3>Active State</h3>
+                <div class="info-row">
+                    <span class="info-label">Grade 0 (Scalar):</span>
+                    <span class="info-value" id="g0">1.000</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Grade 1 (Vector):</span>
+                    <span class="info-value" id="g1">0.000</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Grade 2 (Bivector):</span>
+                    <span class="info-value" id="g2">0.000</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Grade 3 (Trivector):</span>
+                    <span class="info-value" id="g3">0.000</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Grade 4 (PScalar):</span>
+                    <span class="info-value" id="g4">0.000</span>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Right Sidebar - Topology -->
+        <aside class="sidebar-right">
+            <div class="panel-title">System Topology</div>
+            <div class="topology-view">
+                <div class="topology-node">
+                    <div class="node-status"></div>
+                    <span>Node0 (Immutable)</span>
+                </div>
+                <div class="topology-node">
+                    <div class="node-status"></div>
+                    <span>Input Encoder</span>
+                </div>
+                <div class="topology-node">
+                    <div class="node-status"></div>
+                    <span>PGA Transformer</span>
+                </div>
+                <div class="topology-node">
+                    <div class="node-status"></div>
+                    <span>SSM Core</span>
+                </div>
+                <div class="topology-node">
+                    <div class="node-status"></div>
+                    <span>SPAM Vector</span>
+                </div>
+                <div class="topology-node">
+                    <div class="node-status"></div>
+                    <span>SO(3,1) Cage</span>
+                </div>
+                <div class="topology-node">
+                    <div class="node-status"></div>
+                    <span>ÆXIE Parser</span>
+                </div>
+                <div class="topology-node">
+                    <div class="node-status"></div>
+                    <span>HOPE Memory</span>
+                </div>
+            </div>
+            
+            <div class="panel-title" style="margin-top: 20px;">Lattice Status</div>
+            <div class="topology-view">
+                <div class="info-row" style="margin-bottom: 10px;">
+                    <span class="info-label">Bigrams:</span>
+                    <span class="info-value">676</span>
+                </div>
+                <div class="info-row" style="margin-bottom: 10px;">
+                    <span class="info-label">Shells:</span>
+                    <span class="info-value">7</span>
+                </div>
+                <div class="info-row" style="margin-bottom: 10px;">
+                    <span class="info-label">Sectors:</span>
+                    <span class="info-value">4096</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Φ Ratio:</span>
+                    <span class="info-value">1.61803</span>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Bottom Panel -->
+        <footer class="bottom-panel">
+            <div class="panel-title" style="margin: 0; writing-mode: vertical-rl; text-orientation: mixed;">Glyphs</div>
+            <div class="glyph-stream" id="glyphStream">
+                <div class="glyph">→</div>
+                <div class="glyph">∅</div>
+                <div class="glyph">☀</div>
+                <div class="glyph">□</div>
+                <div class="glyph">∿</div>
+                <div class="glyph">×</div>
+                <div class="glyph">●</div>
+            </div>
+            
+            <div style="width: 1px; background: #2a2a4e; margin: 0 10px;"></div>
+            
+            <div class="panel-title" style="margin: 0; writing-mode: vertical-rl; text-orientation: mixed;">Modules</div>
+            <div style="display: flex; gap: 10px;">
+                <div class="module-slot occupied" title="Core Visualizer">🜁</div>
+                <div class="module-slot" title="Agent Runtime">+</div>
+                <div class="module-slot" title="Memory Persistence">+</div>
+                <div class="module-slot" title="Network Sync">+</div>
+                <div class="module-slot" title="Autonomy Core">+</div>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        // ============================================================
+        // Φ-RADIAL LOOM — Geometric Language Visualizer
+        // Entry point to persistent agentic intelligence
+        // ============================================================
+        
+        const PHI = (1 + Math.sqrt(5)) / 2;
+        const PHI_INV = 1 / PHI;
+        
+        // Grade indices for 16D PGA
+        const GRADE_INDICES = {
+            0: [0],                    // scalar
+            1: [1, 2, 3, 4],          // vectors
+            2: [5, 6, 7, 8, 9, 10],   // bivectors
+            3: [11, 12, 13, 14],      // trivectors
+            4: [15]                    // pseudoscalar
+        };
+        
+        // Current state
+        let currentState = new Float64Array(16);
+        currentState[0] = 1.0;  // Start at identity
+        let currentKappa = 1.0;
+        let activeKey = -1;
+        
+        // Initialize with some structure
+        function initState() {
+            // Create a rotor-like state
+            const theta = Math.PI / 4;
+            currentState[0] = Math.cos(theta / 2);
+            currentState[5] = Math.sin(theta / 2);  // e12 component
+            normalizeState();
+            updateDisplay();
+        }
+        
+        function normalizeState() {
+            let sum = 0;
+            for (let i = 0; i < 16; i++) sum += currentState[i] * currentState[i];
+            const norm = Math.sqrt(sum);
+            if (norm > 0) {
+                for (let i = 0; i < 16; i++) currentState[i] /= norm;
+            }
+        }
+        
+        function computeKappa() {
+            // Node0 is [1,0,0,0,...]
+            return currentState[0];  // Scalar component = alignment
+        }
+        
+        function updateDisplay() {
+            currentKappa = computeKappa();
+            document.getElementById('kappaValue').textContent = currentKappa.toFixed(4);
+            document.getElementById('kappaFill').style.width = (currentKappa * 100) + '%';
+            
+            // Update grade displays
+            for (let g = 0; g < 5; g++) {
+                let sum = 0;
+                for (let idx of GRADE_INDICES[g]) {
+                    sum += currentState[idx] * currentState[idx];
+                }
+                document.getElementById(`g${g}`).textContent = Math.sqrt(sum).toFixed(3);
+            }
+        }
+        
+        // 7 Christ Keys activation
+        function activateKey(keyIndex) {
+            activeKey = keyIndex;
+            
+            // Visual feedback
+            document.querySelectorAll('.key-button').forEach((btn, i) => {
+                btn.classList.toggle('active', i === keyIndex);
+            });
+            
+            // Apply key transformation (simplified)
+            switch(keyIndex) {
+                case 0: // ALIGNMENT - pull toward Node0
+                    for (let i = 0; i < 16; i++) {
+                        currentState[i] = PHI_INV * (i === 0 ? 1 : 0) + (1 - PHI_INV) * currentState[i];
+                    }
+                    break;
+                case 1: // RECIPROCITY - golden blend with random
+                    const random = new Float64Array(16);
+                    for (let i = 0; i < 16; i++) random[i] = (Math.random() - 0.5) * 0.5;
+                    random[0] = 1.0;
+                    for (let i = 0; i < 16; i++) {
+                        currentState[i] = PHI_INV * random[i] + (1 - PHI_INV) * currentState[i];
+                    }
+                    break;
+                case 2: // INVERSION - reflect through origin
+                    for (let i = 0; i < 16; i++) currentState[i] = -currentState[i];
+                    break;
+                case 3: // SILENCE - return to center
+                    for (let i = 0; i < 16; i++) {
+                        currentState[i] = PHI_INV * (i === 0 ? 1 : 0) + (1 - PHI_INV) * currentState[i];
+                    }
+                    break;
+                case 4: // RESONANCE - modulate with time
+                    const t = Date.now() / 1000;
+                    currentState[0] *= (1 + 0.1 * Math.sin(t));
+                    break;
+                case 5: // EXCHANGE - mix with minimum
+                    for (let i = 1; i < 16; i++) {
+                        currentState[i] *= 0.5;
+                    }
+                    break;
+                case 6: // CONCENTRATION - amplify max
+                    let maxIdx = 0;
+                    let maxVal = Math.abs(currentState[0]);
+                    for (let i = 1; i < 16; i++) {
+                        if (Math.abs(currentState[i]) > maxVal) {
+                            maxVal = Math.abs(currentState[i]);
+                            maxIdx = i;
+                        }
+                    }
+                    currentState[maxIdx] *= PHI;
+                    break;
+            }
+            
+            normalizeState();
+            updateDisplay();
+            updateVisualization();
+        }
+        
+        // ============================================================
+        // GANJA.JS PGA Visualizer
+        // ============================================================
+        
+        Algebra(3, 0, 1).then(pga => {
+            const { e, sin, cos } = pga;
+            
+            // Create visualizer
+            const visualizer = pga.graph(() => {
+                const elements = [];
+                
+                // Node0 center point
+                elements.push(0x00ff88, e(1, 0, 0, 0));  // Green center
+                
+                // Current state visualization
+                // Extract vector part for display
+                const vx = currentState[1] * 2;
+                const vy = currentState[2] * 2;
+                const vz = currentState[3] * 2;
+                
+                // Draw state as a point/vector
+                if (Math.abs(vx) + Math.abs(vy) + Math.abs(vz) > 0.01) {
+                    elements.push(0xff6b35, e(1, vx, vy, vz));  // Orange state point
+                    
+                    // Draw line from center to state
+                    const line = e(1, 0, 0, 0).Join(e(1, vx, vy, vz));
+                    elements.push(0xffd700, line);
+                }
+                
+                // Draw bivector plane if significant
+                const bivectorMag = Math.sqrt(
+                    currentState[5]**2 + currentState[6]**2 + currentState[7]**2
+                );
+                if (bivectorMag > 0.1) {
+                    // Simplified plane visualization
+                    elements.push(0x6b6b9b, e(1, vx * 0.5, vy * 0.5, vz * 0.5));
+                }
+                
+                // Add text label for current key
+                const keyNames = ['Alignment', 'Reciprocity', 'Inversion', 'Silence', 
+                                 'Resonance', 'Exchange', 'Concentration'];
+                if (activeKey >= 0) {
+                    elements.push(keyNames[activeKey]);
+                }
+                
+                return elements;
+            }, { canvas: 'visualizer', animate: true });
+            
+            window.updateVisualization = () => {
+                // Trigger redraw
+            };
+        });
+        
+        // Text input handler
+        document.getElementById('textInput').addEventListener('input', (e) => {
+            const text = e.target.value;
+            generateGlyphs(text);
+            
+            // Update state based on text hash (simplified)
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) {
+                hash = ((hash << 5) - hash) + text.charCodeAt(i);
+                hash |= 0;
+            }
+            
+            // Map hash to state
+            for (let i = 0; i < 16; i++) {
+                currentState[i] = Math.sin(hash * (i + 1) * 0.1) * 0.3;
+            }
+            currentState[0] = 0.7 + Math.abs(hash % 100) / 500;
+            normalizeState();
+            updateDisplay();
+        });
+        
+        function generateGlyphs(text) {
+            const glyphs = ['→', '∅', '☀', '□', '∿', '×', '●'];
+            const container = document.getElementById('glyphStream');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < Math.min(text.length, 10); i++) {
+                const glyph = document.createElement('div');
+                glyph.className = 'glyph';
+                glyph.textContent = glyphs[i % glyphs.length];
+                glyph.style.animationDelay = (i * 0.1) + 's';
+                container.appendChild(glyph);
+            }
+        }
+        
+        // Module slot interactions
+        document.querySelectorAll('.module-slot').forEach(slot => {
+            slot.addEventListener('click', () => {
+                if (!slot.classList.contains('occupied')) {
+                    // Future: load module
+                    alert('Module slot: ' + slot.title + '\n\nFuture upgrade path:\n• Agent Runtime\n• Memory Persistence\n• Network Sync\n• Autonomy Core');
+                }
+            });
+        });
+        
+        // Initialize
+        initState();
+        generateGlyphs("silence becomes fire");
+        
+        // Animation loop
+        setInterval(() => {
+            if (activeKey === 4) {  // RESONANCE active
+                activateKey(4);
+            }
+        }, 100);
+    </script>
+</body>
+</html>

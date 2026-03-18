@@ -1,0 +1,26 @@
+{
+  "invoice_number": "INV-2024-001",
+  "date": "March 17, 2024",
+  "company": {
+    "name": "Acme Corporation",
+    "address": "123 Business Street, New York, NY 10001",
+    "email": "billing@acme.com",
+    "phone": "(555) 123-4567"
+  },
+  "customer": {
+    "name": "John Smith",
+    "company": "Smith & Associates",
+    "address": "456 Client Avenue, Boston, MA 02101"
+  },
+  "items": [
+    {"description": "Consulting Services", "quantity": 10, "unit_price": 150.00},
+    {"description": "Software License", "quantity": 2, "unit_price": 299.99},
+    {"description": "Training Session", "quantity": 1, "unit_price": 500.00}
+  ],
+  "subtotal": 2599.98,
+  "tax_rate": 0.08,
+  "tax_amount": 208.00,
+  "total": 2807.98,
+  "payment_terms": "Net 30",
+  "notes": "Thank you for your business!"
+}

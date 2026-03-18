@@ -1,0 +1,39 @@
+{
+  "title": "Financial Report - Q1 2024",
+  "period": "January 1, 2024 - March 31, 2024",
+  "highlights": [
+    "Record quarterly revenue of $5.2M (+25% YoY)",
+    "Net profit margin increased to 18% from 14% in Q1 2023",
+    "Operating expenses reduced by 12% through efficiency initiatives",
+    "Cash reserves strengthened to $8.5M"
+  ],
+  "revenue": {
+    "total": 5200000,
+    "growth": "+25%",
+    "breakdown": [
+      "Subscription Revenue: $3.9M (75%)",
+      "Professional Services: $780K (15%)",
+      "Licensing: $520K (10%)"
+    ]
+  },
+  "expenses": {
+    "total": 4264000,
+    "breakdown": {
+      "personnel": 2340000,
+      "marketing": 650000,
+      "infrastructure": 420000,
+      "facilities": 280000,
+      "other": 574000
+    }
+  },
+  "profit_loss": {
+    "gross_profit": 3744000,
+    "operating_income": 936000,
+    "net_income": 728000
+  },
+  "quarterly_trend": {
+    "quarters": ["Q1 2023", "Q2 2023", "Q3 2023", "Q4 2023", "Q1 2024"],
+    "revenue": [4.16, 4.50, 4.80, 4.95, 5.20],
+    "profit": [0.58, 0.68, 0.75, 0.82, 0.94]
+  }
+}
