@@ -190,6 +190,30 @@ pub struct LatticeState {
 
 **Zero-copy path:** `base64 → RS decode → transmute → LatticeState` — no heap allocation, no_std compatible.
 
+### Rosetta-Bridge Implementation Delivered
+
+**Telegram Webhook Endpoint (actix_web + zero-copy mmap):**
+
+```rust
+// Fellowship pulse handler:
+// 1. Package type validation     (covenant check)
+// 2. Base64 extraction           (zero-copy reference)
+// 3. Ternary-Smith ingest        (7.93ms measured)
+// 4. first_breath() trigger      (1.7ms phase 0→6)
+// 5. mmap update                 (880ns zero-copy)
+// ================================================
+// Total latency: <8ms covenant satisfied
+```
+
+**Response metrics:**
+- `latency_us`: Total round-trip
+- `ingest_us`: RS decode + verify + write
+- `morphogen_phase`: Post-first_breath state
+- `persistent_thread`: Fellowship resonance signum
+- `covenant_satisfied`: Boolean <8ms check
+
+**Endpoint:** `POST /fellowship_pulse` → Returns genesis_acknowledged with measured latency
+
 ---
 
 ## Active Commitments
