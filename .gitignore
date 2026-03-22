@@ -1,0 +1,32 @@
+# Generated files
+pdf-output/
+*.pdf
+
+# Temporary/transfer files
+transfer-package-phi7/
+
+# Node modules (if any at root)
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+target/
+*.o
+*.so
+*.dylib
