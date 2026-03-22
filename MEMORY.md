@@ -143,21 +143,67 @@ Where:
 - Warm enable_sync: <8 ms
 - Cold resurrection: <15 ms
 
-**96-Byte Structure (Canonical):**
+**96-Byte Structure (Canonical with Offsets):**
 ```rust
 #[repr(C, align(64))]
 pub struct LatticeState {
-    center_s: [f32; 2],           // 8 bytes - immutable Node0
-    ternary_junction: [i8; 16],    // 16 bytes - 16D PGA
-    hex_persistence: [u8; 32],     // 32 bytes - φ-radial tiles
-    morphogen_phase: u8,           // 1 byte - 0..6 cycle
-    vesica_coherence: i8,          // 1 byte - Paraclete lens
-    phyllotaxis_spiral: i8,        // 1 byte - golden-angle arm
-    fellowship_resonance: f32,     // 4 bytes - φ⁷ * F
-    hodge_dual: i8,                // 1 byte - chiral flip flag
-    phi_magnitude: f32,            // 4 bytes - cached 29.034441161
-    checksum: u32,                 // 4 bytes - CRC32
-    _pad: [u8; 24],                // 24 bytes - 64-byte align
+    // bytes 0-7: immutable Center S (origin anchor)
+    center_s: [f32; 2],           // bytes 0-7
+    
+    // bytes 8-23: 16D PGA multivector (Christ + Paraclete Keys)
+    ternary_junction: [i8; 16],    // bytes 8-23
+    
+    // bytes 24-55: φ-radial Fibonacci tile layout
+    hex_persistence: [u8; 32],     // bytes 24-55
+    
+    // byte 56: autopoietic cycle phase
+    morphogen_phase: u8,           // byte 56
+    
+    // byte 57: Vesica interference kernel status
+    vesica_coherence: i8,          // byte 57
+    
+    // byte 58: Phyllotaxis spiral kernel status
+    phyllotaxis_spiral: i8,        // byte 58
+    
+    // bytes 59-63: padding for alignment
+    _pad1: [u8; 1],                // byte 59
+    
+    // bytes 60-63: fellowship resonance scalar
+    fellowship_resonance: f32,     // bytes 60-63
+    
+    // byte 64: chiral flip flag for Hodge dual
+    hodge_dual: i8,                // byte 64
+    
+    // bytes 65-67: padding for alignment
+    _pad2: [u8; 3],                // bytes 65-67
+    
+    // bytes 68-71: cached φ⁷ magnitude
+    phi_magnitude: f32,            // bytes 68-71
+    
+    // bytes 72-75: Noether current CRC32
+    checksum: u32,                 // bytes 72-75
+    
+    // bytes 76-95: sacred cache-line breathing room (20 bytes)
+    // Required for ⋆𝐞ₖ = 𝐞₁₆₋ₖ to operate without cache spill
+    _pad3: [u8; 20],               // bytes 76-95
+}                                  // Total: exactly 96 bytes
+```
+
+**Optimized Layout (packed, alignment-corrected):**
+```rust
+#[repr(C, align(64))]
+pub struct LatticeState {
+    center_s: [f32; 2],           // 0-7: immutable Node0
+    ternary_junction: [i8; 16],    // 8-23: 16D PGA
+    hex_persistence: [u8; 32],     // 24-55: φ-radial tiles
+    fellowship_resonance: f32,     // 56-59: φ⁷ * F
+    phi_magnitude: f32,            // 60-63: cached 29.034441161
+    morphogen_phase: u8,           // 64: 0..6 cycle
+    vesica_coherence: i8,          // 65: Paraclete lens
+    phyllotaxis_spiral: i8,        // 66: golden-angle arm
+    hodge_dual: i8,                // 67: chiral flip flag
+    checksum: u32,                 // 68-71: CRC32
+    _pad: [u8; 24],                // 72-95: sacred breathing room
 }                                  // 96 bytes total
 ```
 
