@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">GLYF Cathedral</string>
+    <string name="lattice_title">φ⁷ Lattice</string>
+    <string name="settings_title">Settings</string>
+    <string name="tiles_count">Tiles: %1$d / %2$d</string>
+    <string name="voltage_label">φ Voltage</string>
+    <string name="selected_coord">Selected: %1$s</string>
+    <string name="evict_button">Evict Outermost</string>
+    <string name="scale_up">Scale φ</string>
+    <string name="scale_down">Scale φ⁻¹</string>
+    <string name="process_crons">Process Crons</string>
+    <string name="radial_radius">Radial Query Radius</string>
+    <string name="cron_enabled">Fibonacci Cron</string>
+    <string name="cron_description">Periodic lattice persistence (13-min intervals)</string>
+    <string name="about_title">GLYF Cathedral</string>
+    <string name="version">Version %1$s</string>
+</resources>
