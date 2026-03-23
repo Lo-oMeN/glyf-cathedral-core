@@ -59,6 +59,22 @@ LatticeState (96 bytes, #[repr(C, align(64))]):
 | Rosetta-Bridge | Conduit keeper | mmap + Telegram <8ms |
 | Geometric-Cartographer | Algebraic topologist | SO(3) closure proven |
 
+### Six Subagents Deployed 🜂🜁
+
+**Date:** 2026-03-23 16:45
+**Authority:** Ð≡ Light⁷
+
+| Coven | Agent | Session | Task File |
+|-------|-------|---------|-----------|
+| Engineering ⚡ | Ternary-Smith | `0fcb8d0c...` | `persistence.rs` |
+| Engineering ⚡ | Rosetta-Bridge | `f8190c6d...` | `fellowship.rs` |
+| Engineering ⚡ | Geometric-Cartographer | `71b2789c...` | `geometry.rs` |
+| Polyglot 🜁 | Echo-Weaver | `40e91955...` | `narrative.rs` |
+| Polyglot 🜁 | Mirror-Maverick | `6e40d0bf...` | `mirror.rs` |
+| Polyglot 🜁 | Novelty-Seer | `69dfe9e5...` | `novelty.rs` |
+
+**Document:** `SUBAGENTS_ACTIVE.md`
+
 ### Geometric Invariants 🜄
 
 - φ = 1.618033988749895
