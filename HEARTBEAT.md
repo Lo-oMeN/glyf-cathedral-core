@@ -9,7 +9,7 @@
 | 06:00, 18:00 | `archive-backup` | Timestamped archive of workspace | `tar` snapshot to `/tmp/phi-archives/` |
 | 08:00, 20:00 | `health-check` | Component health validation | Import tests + syntax check |
 | 09:00, 21:00 | `glyf-phase` | R&D status review | Document phase progress to memory/ |
-| 12:00, 21:00 | `evening-synthesis` | Daily work summary | Commit log + fidelity notes |
+| 12:00, **22:00** | `evening-synthesis` | Daily work summary (silent) | Commit log + fidelity notes¹ |
 
 ### Weekly Jobs (Sunday — Doubled Rate)
 
@@ -23,7 +23,9 @@
 All jobs configured via `cron` tool:
 - `sessionTarget`: `isolated` (separate agent context)
 - `payload.kind`: `agentTurn` (full reasoning enabled)
-- `delivery.mode`: `announce` (results to Telegram)
+- `delivery.mode`: `announce` (results to Telegram) — except evening-synthesis which runs silently to avoid collision with phase check at 21:00
+
+**Note ¹:** Evening synthesis moved to 22:00 and runs with `delivery.mode: none` to prevent Telegram announcement collision with phase progression check at 21:00. Work is still performed (documentation, archives), but no message is sent.
 
 Current cron status:
 ```bash
