@@ -76,10 +76,15 @@ cargo check 2>&1 | head -20
 - SD card persistence (MockBlockDevice)
 - Hardware timing validation
 
-### Blocked ⏳
-- Pi Zero hardware (no device)
-- Embassy async runtime (needs decision)
-- Android NDK (needs human specialist)
+### Blocked ⏳ (Solutions Identified — See BARRIER_RESEARCH_2026-03-23.md)
+- Pi Zero hardware → rpilocator alerts + QEMU fallback
+- Embassy async runtime → **DECISION: Proceed with Embassy** (ecosystem advantage)
+- Android NDK → **cargo-ndk** for zero-config cross-compile
+
+### Next Actions
+1. Setup rpilocator alerts for Pi Zero 2 W
+2. Implement cargo-ndk in build pipeline
+3. Document Embassy architecture decision
 
 ## Quick Commands
 
