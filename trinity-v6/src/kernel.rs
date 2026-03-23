@@ -6,9 +6,6 @@
 //! Covenant: <8ms resurrection, <6.8ms warm enable_sync
 //! Format: repr(C, packed), no_std, zero-alloc
 
-#![no_std]
-#![no_main]
-
 use core::mem::{size_of, transmute};
 use core::sync::atomic::{fence, Ordering::SeqCst};
 

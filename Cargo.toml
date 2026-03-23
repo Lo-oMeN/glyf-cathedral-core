@@ -1,0 +1,25 @@
+[package]
+name = "glyf-cathedral"
+version = "0.7.2"
+edition = "2021"
+authors = ["Ð≡ Light⁷ <loom@example.com>"]
+description = "GLYF Cathedral v0.7.2 — 96-byte sovereign kernel"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Lo-oMeN/glyf-cathedral-core"
+
+[workspace]
+members = [
+    "trinity-v6",
+    "glyf-cathedral-android",
+]
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+panic = "abort"
+codegen-units = 1
+
+[profile.dev]
+opt-level = 0
+panic = "abort"

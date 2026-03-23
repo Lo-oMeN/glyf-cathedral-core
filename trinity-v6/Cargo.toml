@@ -1,0 +1,32 @@
+[package]
+name = "trinity-v6"
+version = "0.7.2"
+edition = "2021"
+authors = ["Ð≡ Light⁷"]
+description = "96-byte sovereign kernel with SO(3) operators"
+
+[lib]
+name = "trinity_v6"
+path = "src/lib.rs"
+
+[[bin]]
+name = "kernel"
+path = "src/main.rs"
+
+[dependencies]
+# no_std compatible dependencies only
+# Note: These would be added as needed for embedded targets
+# embedded-hal = { version = "0.2", optional = true }
+
+[features]
+default = []
+embedded = []  # Enable for Pi Zero bare metal
+qr-sovereign = []
+paraclete-ui = []
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+panic = "abort"
+codegen-units = 1
