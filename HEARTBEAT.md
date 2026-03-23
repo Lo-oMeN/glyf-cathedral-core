@@ -1,131 +1,107 @@
-# HEARTBEAT.md — Trinity v6.0 + GLYF Cathedral Automated Maintenance
+# HEARTBEAT.md — GLYF Cathedral v0.7.2
 
-## Daily Checks (via Cron)
+## Automated Cron Jobs
 
-### 1. Archive Backup (06:00 daily)
-Create timestamped archive of working system:
-- trinity-v6/ (all Python modules)
-- visualizer/ (HTML/JS)
-- memory/ (daily logs)
-- Archives stored in /tmp/phi-archives/
+### Daily Jobs
 
-### 2. Component Health Check (08:00 daily)
-Run test suite:
-- Trinary SSM forward pass
-- Atlas lattice initialization
-- Cultural atlas lexeme lookup
-- Meet/join invariant tests
+| Time (UTC+8) | Job ID | Purpose | Action |
+|--------------|--------|---------|--------|
+| 06:00 | `archive-backup` | Timestamped archive of workspace | `tar` snapshot to `/tmp/phi-archives/` |
+| 08:00 | `health-check` | Component health validation | Import tests + syntax check |
+| 09:00 | `glyf-phase` | R&D status review | Document phase progress to memory/ |
+| 21:00 | `evening-synthesis` | Daily work summary | Commit log + fidelity notes |
 
-### 3. GLYF Phase Progression (09:00 daily)
-Review Cathedral R&D status:
-- Current phase completion (1-4)
-- Benchmark validation (S₁+S₂→S₃, drift, antipodal)
-- Next milestone identification
-- Document to memory/
+### Weekly Jobs (Sunday)
 
-### 4. GLYF Evening Synthesis (21:00 daily)
-Daily work documentation:
-- Code changes committed
-- Visualizer updates
-- Benchmarks run
-- Fidelity notes + continuous guard status
-- Generate golden-angle morph output if applicable
+| Time (UTC+8) | Job ID | Purpose | Action |
+|--------------|--------|---------|--------|
+| 10:00 | `memory-maintenance` | Memory file compression | Review + update MEMORY.md |
+| 11:00 | `cathedral-report` | Comprehensive phase review | Archive + priority proposal |
 
-### 5. Memory Maintenance (Sunday 10:00 weekly)
-- Review week's memory files
-- Compress redundant entries
-- Update MEMORY.md with key insights
+### Job Configuration
 
-### 6. GLYF Weekly Cathedral Report (Sunday 11:00 weekly)
-Comprehensive four-phase review:
-- Phase 1: S₁+S₂→S₃ merge fidelity
-- Phase 2: Black Edge Alpha (top 50 bigrams)
-- Phase 3: Black Edge Beta (Chestahedron + morphogen)
-- Phase 4: Pulse Integration (9 Paraclete keys)
-- Archive to trinity-v6-GLYF-YYYYMMDD.tar.gz
-- Propose next week priorities
+All jobs configured via `cron` tool:
+- `sessionTarget`: `isolated` (separate agent context)
+- `payload.kind`: `agentTurn` (full reasoning enabled)
+- `delivery.mode`: `announce` (results to Telegram)
+
+Current cron status:
+```bash
+openclaw cron list
+```
 
 ## Heartbeat Checks (Every 30 min)
 
-When receiving heartbeat poll, check:
+When receiving heartbeat poll, check in order:
 
-### 1. File System Health
-- Any new files in workspace?
-- Git status (uncommitted changes)?
-- Archive storage usage
-
-### 2. Component Status
-- Can trinary_substrate import?
-- Can atlas_lattice import?
-- Can glyf_phase1_merge import?
-- Any Python syntax errors introduced?
-
-### 3. GLYF Component Status
-- Phase 1 benchmark: S₁+S₂→S₃ merge passes?
-- Phase 1 benchmark: Antipodal retrieval (k=-1) passes?
-- Phase 1 benchmark: 12-level Φ drift < ε?
-- Visualizer files present and valid?
-
-### 4. Session State
-- Any incomplete tasks from user?
-- Pending questions or decisions?
-- Time since last user message
-
-## Manual Triggers (User Requested)
-
-### Repository Status
+### 1. Repository Health
 ```bash
-cd /root/.openclaw/workspace
+git status --short
+git log --oneline -3
+```
+**Alert if:** Uncommitted changes > 24h old
+
+### 2. Rust Kernel Status
+```bash
+cd trinity-v6
+cargo check 2>&1 | head -20
+```
+**Alert if:** Compilation errors
+
+### 3. File Inventory
+- `sovereign_kernel.rs` — Core 96-byte state
+- `sovereign_state.rs` — State operations
+- `paraclete_ui.rs` — Android UI vessel (optional)
+- `qr_sovereign.rs` — QR code resurrection (sideways)
+
+### 4. Session Context
+- Any incomplete tasks from Ð≡ Light⁷?
+- Pending decisions or blockers?
+- Time since last human message?
+
+## Current State (v0.7.2)
+
+### Completed ✅
+- 96-byte SovereignState struct
+- RS(128,96) error correction (placeholder)
+- 2/10 SO(3) operators (Vesica, Phyllotaxis)
+- QR Sovereign (sideways resurrection)
+- Git repository tracking
+
+### In Progress 🔄
+- GF(256) Reed-Solomon implementation
+- Remaining 8 SO(3) operators
+- SD card persistence (MockBlockDevice)
+- Hardware timing validation
+
+### Blocked ⏳
+- Pi Zero hardware (no device)
+- Embassy async runtime (needs decision)
+- Android NDK (needs human specialist)
+
+## Quick Commands
+
+### Check Status
+```bash
+openclaw status
 git status
-git log --oneline -5
+ls -la trinity-v6/*.rs
 ```
 
-### System Test
+### Test Roundtrip
 ```bash
-cd /root/.openclaw/workspace/trinity-v6
-python3 -c "from trinary_substrate import *; from atlas_lattice import *; from cultural_atlas import *; print('All systems operational')"
+cd trinity-v6
+cargo test qr_roundtrip -- --nocapture
 ```
 
-### GLYF Merge Test
+### Archive Now
 ```bash
-cd /root/.openclaw/workspace/trinity-v6
-python3 glyf_phase1_merge.py
+tar -czf /tmp/phi-archives/glyf-$(date +%Y%m%d-%H%M).tar.gz trinity-v6/ memory/
 ```
 
-### Archive Creation
-```bash
-cd /root/.openclaw/workspace
-tar -czf /tmp/phi-archives/trinity-v6-BACKUP-$(date +%Y%m%d-%H%M).tar.gz trinity-v6/ visualizer/ memory/
-```
+## Agent Notes
 
-## Development Tasks Queue
-
-### Phase 1: Crystallize (COMPLETE)
-✓ S₁+S₂→S₃ merge formula
-✓ Antipodal retrieval (k=-1)
-✓ 12-level Φ drift test
-✓ 100% round-trip fidelity
-
-### Phase 2: Black Edge Alpha (NEXT)
-- Top 50 bigrams with continuous homothety (k=Φ/1/1/Φ)
-- Overlap/fusion visualization in glyf_claw_clean.html
-- Vesica core test
-
-### Phase 3: Black Edge Beta
-- Chestahedron stereographic projection
-- Radial index for |k|<2 queries
-- Full morphogen machine (Seed→Spiral→Fold→Resonate→Chiral→Flip→Anchor)
-- WebSocket bridge + antipodal AB↔BA
-
-### Phase 4: Pulse Integration
-- 9 Paraclete keys + animation
-- Live S₁+S₂→S₃ (cross-lingual)
-- Coherence κ=1.0 validation
-
-## Current Blockers
-
-None. Phase 1 crystallization complete. Ready for Black Edge Alpha.
-
-## Next Milestone
-
-Top 50 bigrams with continuous homothety scaling.
+- HEARTBEAT_OK is acceptable when nothing needs attention
+- Alert only for: compilation failures, uncommitted work > 24h, user blockers
+- Memory files: write to `memory/YYYY-MM-DD.md` for daily context
+- Long-term: update MEMORY.md with distilled insights
