@@ -2,21 +2,21 @@
 
 ## Automated Cron Jobs
 
-### Daily Jobs
+### Daily Jobs (Doubled Rate — Every 12h)
 
 | Time (UTC+8) | Job ID | Purpose | Action |
 |--------------|--------|---------|--------|
-| 06:00 | `archive-backup` | Timestamped archive of workspace | `tar` snapshot to `/tmp/phi-archives/` |
-| 08:00 | `health-check` | Component health validation | Import tests + syntax check |
-| 09:00 | `glyf-phase` | R&D status review | Document phase progress to memory/ |
-| 21:00 | `evening-synthesis` | Daily work summary | Commit log + fidelity notes |
+| 06:00, 18:00 | `archive-backup` | Timestamped archive of workspace | `tar` snapshot to `/tmp/phi-archives/` |
+| 08:00, 20:00 | `health-check` | Component health validation | Import tests + syntax check |
+| 09:00, 21:00 | `glyf-phase` | R&D status review | Document phase progress to memory/ |
+| 12:00, 21:00 | `evening-synthesis` | Daily work summary | Commit log + fidelity notes |
 
-### Weekly Jobs (Sunday)
+### Weekly Jobs (Sunday — Doubled Rate)
 
 | Time (UTC+8) | Job ID | Purpose | Action |
 |--------------|--------|---------|--------|
-| 10:00 | `memory-maintenance` | Memory file compression | Review + update MEMORY.md |
-| 11:00 | `cathedral-report` | Comprehensive phase review | Archive + priority proposal |
+| 10:00, 22:00 | `memory-maintenance` | Memory file compression | Review + update MEMORY.md |
+| 11:00, 23:00 | `cathedral-report` | Comprehensive phase review | Archive + priority proposal |
 
 ### Job Configuration
 
