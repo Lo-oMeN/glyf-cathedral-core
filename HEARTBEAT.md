@@ -107,3 +107,4 @@ tar -czf /tmp/phi-archives/glyf-$(date +%Y%m%d-%H%M).tar.gz trinity-v6/ memory/
 - Alert only for: compilation failures, uncommitted work > 24h, user blockers
 - Memory files: write to `memory/YYYY-MM-DD.md` for daily context
 - Long-term: update MEMORY.md with distilled insights
+- **COMMIT CONVENTION**: Every coding session ends with `git add && git commit -m "TYPE: description" && git push`
