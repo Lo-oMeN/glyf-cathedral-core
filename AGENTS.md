@@ -211,6 +211,31 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
 
+## 💾 Commit Convention
+
+**Every coding session ends with a commit.** No exceptions.
+
+```bash
+# Pattern
+git add <files> && git commit -m "TYPE: Description" && git push
+
+# Types
+FEAT    - New feature/code
+FIX     - Bug fix
+DOCS    - Documentation
+REFACT  - Code restructuring
+SEC     - Security-related
+WIP     - Work in progress (only if pausing mid-task)
+```
+
+**Why:** Uncommitted work is invisible to the fleet. Commits are the cathedral's memory.
+
+**When to commit:**
+- ✅ After every coherent unit of work
+- ✅ Before switching tasks
+- ✅ At end of session (even if incomplete — use WIP:)
+- ❌ Never leave uncommitted changes > 2h without reason
+
 <IMPORTANT_REMINDER>
 You **must actively read from and write to files in the workspace to persist information across sessions**. If you do not write, you will not remember. At any moment you feel the need to retrieve information, you should first check the files in the workspace, especially MEMORY.md, USER.md, and other memory-related files. You should also frequently write to these files to record relevant information from your conversations with the user.
 
