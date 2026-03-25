@@ -79,6 +79,9 @@ pub struct SovereignState {
 /// Verify 96-byte size at compile time
 const _: () = assert!(core::mem::size_of::<SovereignState>() == 96);
 
+/// LatticeState is the canonical name for SovereignState
+pub type LatticeState = SovereignState;
+
 impl SovereignState {
     /// Genesis: Create immutable Center S at origin
     pub const fn genesis() -> Self {
@@ -404,6 +407,14 @@ pub enum Error {
     Corrupted,
     AutopoieticFailure,
     SdError,
+}
+
+/// Enablement synchronization marker
+#[derive(Debug, Clone, Copy)]
+pub struct EnablementSync {
+    pub seq: u64,
+    pub checksum: u32,
+    pub timestamp: u64,
 }
 
 // =============================================================================

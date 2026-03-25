@@ -3,20 +3,44 @@
 //! GLYF Cathedral Core Implementation
 //! Target: Pi Zero 2W (ARM1176JZF-S, 1GHz, 512MiB)
 //! Covenant: <8ms resurrection, <6.8ms warm enable_sync
+//!
+//! Axiom 16: Visual embodiment as primary substrate (glyph-field feature)
 
-#![no_std]
-#![cfg_attr(not(test), no_main)]
+// no_std only for embedded targets (no GPU)
+// std required for glyph-field (Android/any device with GPU)
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(all(not(feature = "std"), not(test)), no_main)]
 
 // Core modules
 pub mod kernel;
+pub mod novelty;
+pub mod persistence;
 pub mod state;
 pub mod qr;
 pub mod ui;
+pub mod narrative;
+pub mod mirror;
+pub mod geometry;
+
+// Fellowship protocol (requires std feature)
+#[cfg(feature = "std")]
+pub mod fellowship;
+
+// Axiom 16: Living Vesica Field (requires glyph-field feature)
+#[cfg(feature = "glyph-field")]
+pub mod glyph_field;
 
 // Re-export main types
 pub use kernel::{SovereignKernel, PHI, PHI_7, PHI_INV, PHI_INV_7, GOLDEN_ANGLE_RAD};
-pub use state::{LatticeState, MorphogenPhase, EnablementSync};
+pub use state::{LatticeState, EnablementSync};
 pub use qr::{QRTransfer, ReedSolomon};
+pub use novelty::{Oracle, NoveltyReport, NoveltyIndex, PhasePredictor, ComplexityScorer, EmergenceDetector, EmergenceEvent, EmergenceKind};
+pub use narrative::{MorphogenPhase, NarrativeError, FellowshipResonance, VoltageStatus, Narrative};
+pub use geometry::{verify_so3_closure, sandwich_rotor, hodge_dual, verify_center_s, verify_all, VerificationReport};
+
+// Axiom 16: Re-export living field types
+#[cfg(feature = "glyph-field")]
+pub use glyph_field::{GlyphField, LatticeState as VisualLatticeState, VesicaParams, FieldError};
 
 /// Kernel version identifier (v0.7.2 = 72)
 pub const VERSION: u32 = 72;
@@ -30,6 +54,10 @@ const _: () = {
     const CALCULATED_PHI_7: f32 = 29.034441161;
     assert!(CALCULATED_PHI_7 == 29.034441161);
 };
+
+/// Compile-time verification of VesicaParams size (Axiom 16)
+#[cfg(feature = "glyph-field")]
+const _: () = assert!(core::mem::size_of::<glyph_field::VesicaParams>() == 48); // 3 vec4s = 48 bytes
 
 /// Initialize the sovereign kernel
 /// 
@@ -63,7 +91,7 @@ impl core::fmt::Display for KernelError {
     }
 }
 
-#[cfg(feature = "embedded")]
+#[cfg(all(feature = "embedded", not(feature = "std")))]
 mod embedded {
     use super::*;
     
@@ -108,5 +136,30 @@ mod tests {
     #[test]
     fn test_version() {
         assert_eq!(VERSION, 72);
+    }
+    
+    // Axiom 16: Visual embodiment tests
+    #[cfg(feature = "glyph-field")]
+    mod glyph_field_tests {
+        use super::*;
+        
+        #[test]
+        fn test_vesica_params_size() {
+            assert_eq!(core::mem::size_of::<glyph_field::VesicaParams>(), 48);
+        }
+        
+        #[test]
+        fn test_lattice_state_genesis() {
+            let state = glyph_field::LatticeState::genesis();
+            assert!(state.verify());
+            assert_eq!(state.phi_magnitude, 29.034441161);
+        }
+        
+        #[test]
+        fn test_vesica_params_genesis() {
+            let params = glyph_field::VesicaParams::genesis();
+            assert!(params.circle_a[2] > 0.0); // radius > 0
+            assert!(params.circle_b[2] > params.circle_a[2]); // φ-scaled
+        }
     }
 }

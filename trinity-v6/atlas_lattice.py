@@ -81,11 +81,13 @@ class LatticeAddress:
         """Reconstruct 5D address from linear index."""
         assert 0 <= idx < 729
         # Little-endian: last dimension varies fastest
+        # 729 = 3^6, but we only have 5 dimensions (3^5 = 243 per shell-group)
+        # Shell uses divisor 243 to create 3 groups of 243
         bigram_y = idx % 3
         bigram_x = (idx // 3) % 3
         sub_cell = (idx // 9) % 3
         sector = (idx // 27) % 3
-        shell = (idx // 81) % 3
+        shell = (idx // 243) % 3  # Fixed: was 81, should be 243
         return cls(shell, sector, sub_cell, bigram_x, bigram_y)
     
     @property

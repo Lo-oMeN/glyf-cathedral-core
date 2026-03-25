@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L∞M∆N TRANSCENDENT — The Beautiful Experience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+            color: #fff;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        #main-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Beautiful frosted glass UI */
+        #ui {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+            width: 300px;
+            font-size: 12px;
+            pointer-events: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                        0 0 60px rgba(255, 215, 0, 0.05);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        
+        #ui.hidden {
+            opacity: 0;
+            transform: translateX(-20px);
+            pointer-events: none;
+        }
+        
+        #ui h1 {
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 6px;
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        
+        .metric {
+            margin: 12px 0;
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+        
+        .metric-value {
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff6b35, #ff006e);
+            border-radius: 1px;
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .spectrum-container {
+            display: flex;
+            align-items: flex-end;
+            height: 40px;
+            gap: 2px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .spectrum-bar {
+            flex: 1;
+            background: linear-gradient(to top, 
+                rgba(255, 0, 110, 0.8), 
+                rgba(255, 107, 53, 0.6), 
+                rgba(255, 215, 0, 0.4));
+            border-radius: 1px;
+            transition: height 0.05s ease-out;
+            min-height: 2px;
+        }
+        
+        /* Center start screen */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, 
+                rgba(20, 15, 30, 0.95) 0%, 
+                rgba(0, 0, 0, 0.98) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        
+        #start-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .logo {
+            font-size: 64px;
+            font-weight: 100;
+            letter-spacing: 20px;
+            color: #ffd700;
+            text-shadow: 
+                0 0 40px rgba(255, 215, 0, 0.4),
+                0 0 80px rgba(255, 107, 53, 0.2);
+            margin-bottom: 10px;
+            animation: breathe 4s ease-in-out infinite;
+        }
+        
+        @keyframes breathe {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 60px;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, 
+                rgba(255, 215, 0, 0.9), 
+                rgba(255, 107, 53, 0.9));
+            border: none;
+            color: #000;
+            padding: 18px 50px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 
+                0 4px 30px rgba(255, 215, 0, 0.3),
+                0 0 60px rgba(255, 107, 53, 0.2);
+            font-family: inherit;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 40px rgba(255, 215, 0, 0.4),
+                0 0 80px rgba(255, 107, 53, 0.3);
+        }
+        
+        /* Floating controls */
+        #controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(20px);
+            padding: 12px 24px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        
+        #controls.hidden {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+        }
+        
+        .control-btn.active {
+            background: linear-gradient(135deg, 
+                rgba(255, 215, 0, 0.2), 
+                rgba(255, 107, 53, 0.2));
+            border-color: rgba(255, 215, 0, 0.5);
+            color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+        
+        /* Info overlay */
+        #info {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            text-align: right;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+        
+        #fps {
+            color: rgba(255, 215, 0, 0.6);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="main-canvas"></canvas>
+    </div>
+    
+    <!-- Start Screen -->
+    <div id="start-screen">
+        <div class="logo">L∞M∆N</div>
+        <div class="subtitle">Transcendent Edition</div>
+        <button class="start-btn" onclick="initAudio()">Awaken</button>
+    </div>
+    
+    <!-- UI Panel -->
+    <div id="ui" class="hidden">
+        <h1>Field Resonance</h1>
+        
+        <div class="metric">
+            <div class="metric-header">
+                <span>Emergence</span>
+                <span class="metric-value" id="emergence">0.000</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="emergence-bar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="metric">
+            <div class="metric-header">
+                <span>Coherence</span>
+                <span class="metric-value" id="coherence">0.000</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="coherence-bar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="metric">
+            <div class="metric-header">
+                <span>Reflex Count</span>
+                <span class="metric-value" id="reflex">0</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="reflex-bar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="spectrum-container" id="spectrum">
+            <!-- Generated by JS -->
+        </div>
+    </div>
+    
+    <!-- Controls -->
+    <div id="controls" class="hidden">
+        <button class="control-btn" id="btn-glow" onclick="toggleGlow()">Glow</button>
+        <button class="control-btn" id="btn-trails" onclick="toggleTrails()">Trails</button>
+        <button class="control-btn" id="btn-particles" onclick="toggleParticles()">Particles</button>
+        <button class="control-btn active" id="btn-pause" onclick="togglePause()">Pause</button>
+    </div>
+    
+    <div id="info">
+        <div>Reflex: <span id="reflex-count">0</span></div>
+        <div id="fps">60 FPS</div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // L∞M∆N TRANSCENDENT — Beautiful Edition
+        // Anti-aliased, glowing, particle-based visualizer
+        // ============================================================================
+        
+        const PHI = 1.618033988749895;
+        const PHI_7 = 29.034441161;
+        const GOLDEN_ANGLE = 2.399963229728653;
+        const TAU = Math.PI * 2;
+        
+        // Canvas setup with high DPI support
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d', { 
+            alpha: false,
+            antialias: true
+        });
+        
+        // High DPI scaling for crisp rendering
+        let width, height, dpr;
+        
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            width = window.innerWidth;
+            height = window.innerHeight;
+            
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            
+            ctx.scale(dpr, dpr);
+        }
+        
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // ============================================================================
+        // AUDIO SYSTEM
+        // ============================================================================
+        
+        let audioCtx, analyser, microphone, fftData;
+        let audioEnabled = false;
+        let beatHistory = [];
+        let lastBeat = 0;
+        
+        async function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
+                analyser.smoothingTimeConstant = 0.8;
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioCtx.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                
+                fftData = new Uint8Array(analyser.frequencyBinCount);
+                audioEnabled = true;
+                
+                // UI transitions
+                document.getElementById('start-screen').classList.add('hidden');
+                setTimeout(() => {
+                    document.getElementById('ui').classList.remove('hidden');
+                    document.getElementById('controls').classList.remove('hidden');
+                }, 500);
+                
+                // Create spectrum bars
+                const spectrum = document.getElementById('spectrum');
+                spectrum.innerHTML = '';
+                for (let i = 0; i < 32; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'spectrum-bar';
+                    spectrum.appendChild(bar);
+                }
+                
+            } catch (err) {
+                alert('Audio access denied. Running in demo mode.');
+                document.getElementById('start-screen').classList.add('hidden');
+            }
+        }
+        
+        function getAudio() {
+            if (!audioEnabled || !analyser) {
+                // Demo mode - synthetic waves
+                const t = Date.now() / 1000;
+                const bass = 0.3 + Math.sin(t * 2) * 0.2 + Math.sin(t * 3.7) * 0.1;
+                const mid = 0.3 + Math.sin(t * 4) * 0.15 + Math.sin(t * 5.3) * 0.1;
+                const treble = 0.2 + Math.sin(t * 8) * 0.1;
+                return { 
+                    bass, mid, treble, 
+                    overall: (bass + mid + treble) / 3,
+                    beat: false,
+                    fft: new Array(128).fill(0).map((_, i) => 
+                        Math.sin(t * 10 + i * 0.1) * 50 + 50
+                    )
+                };
+            }
+            
+            analyser.getByteFrequencyData(fftData);
+            
+            // Frequency bands
+            const bassEnd = Math.floor(fftData.length * 0.1);
+            const midEnd = Math.floor(fftData.length * 0.5);
+            
+            let bass = 0, mid = 0, treble = 0;
+            for (let i = 0; i < bassEnd; i++) bass += fftData[i];
+            for (let i = bassEnd; i < midEnd; i++) mid += fftData[i];
+            for (let i = midEnd; i < fftData.length; i++) treble += fftData[i];
+            
+            bass = bass / bassEnd / 255;
+            mid = mid / (midEnd - bassEnd) / 255;
+            treble = treble / (fftData.length - midEnd) / 255;
+            const overall = (bass + mid + treble) / 3;
+            
+            // Beat detection
+            beatHistory.push(overall);
+            if (beatHistory.length > 10) beatHistory.shift();
+            const avg = beatHistory.reduce((a, b) => a + b) / beatHistory.length;
+            const isBeat = overall > avg * 1.5 && overall > 0.4 && Date.now() - lastBeat > 200;
+            if (isBeat) lastBeat = Date.now();
+            
+            // Update spectrum UI
+            const bars = document.querySelectorAll('.spectrum-bar');
+            for (let i = 0; i < bars.length; i++) {
+                const idx = Math.floor(i * fftData.length / bars.length);
+                const val = fftData[idx] / 255;
+                bars[i].style.height = (val * 100) + '%';
+            }
+            
+            return { bass, mid, treble, overall, beat: isBeat, fft: Array.from(fftData) };
+        }
+        
+        // ============================================================================
+        // PARTICLE SYSTEM (Smooth, glowing trails)
+        // ============================================================================
+        
+        const particles = [];
+        const maxParticles = 200;
+        
+        class Particle {
+            constructor(x, y, audio) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.life = 1;
+                this.decay = 0.005 + Math.random() * 0.01;
+                this.size = 2 + Math.random() * 3;
+                this.audio = audio;
+                
+                // Color based on position in golden spiral
+                const angle = Math.atan2(y - height/2, x - width/2);
+                const hue = (angle / TAU + 0.08) % 1; // Gold range
+                this.hue = hue;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+                this.size *= 0.99;
+                
+                // Audio reactivity
+                this.vx *= 0.99;
+                this.vy *= 0.99;
+            }
+            
+            draw(ctx) {
+                if (this.life <= 0) return;
+                
+                const alpha = this.life * 0.8;
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.size * 3
+                );
+                
+                const h = this.hue * 60 + 30; // Gold-orange range
+                gradient.addColorStop(0, `hsla(${h}, 100%, 70%, ${alpha})`);
+                gradient.addColorStop(0.5, `hsla(${h}, 100%, 50%, ${alpha * 0.5})`);
+                gradient.addColorStop(1, `hsla(${h}, 100%, 30%, 0)`);
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 3, 0, TAU);
+                ctx.fill();
+            }
+        }
+        
+        function spawnParticles(x, y, count, audio) {
+            for (let i = 0; i < count && particles.length < maxParticles; i++) {
+                particles.push(new Particle(x, y, audio));
+            }
+        }
+        
+        // ============================================================================
+        // VESICA FIELD (Beautiful, anti-aliased)
+        // ============================================================================
+        
+        let settings = {
+            glow: true,
+            trails: true,
+            particles: true,
+            rotationSpeed: 0.005
+        };
+        
+        function toggleGlow() { settings.glow = !settings.glow; }
+        function toggleTrails() { settings.trails = !settings.trails; }
+        function toggleParticles() { settings.particles = !settings.particles; }
+        let isPaused = false;
+        function togglePause() { 
+            isPaused = !isPaused; 
+            document.getElementById('btn-pause').classList.toggle('active');
+        }
+        
+        // Trail buffer
+        const trailCanvas = document.createElement('canvas');
+        const trailCtx = trailCanvas.getContext('2d');
+        
+        function drawVesica(ctx, cx, cy, r1, r2, offset, rotation, audio) {
+            const c1x = cx + Math.cos(rotation) * offset;
+            const c1y = cy + Math.sin(rotation) * offset;
+            const c2x = cx - Math.cos(rotation) * offset;
+            const c2y = cy - Math.sin(rotation) * offset;
+            
+            // Outer glow
+            if (settings.glow) {
+                ctx.shadowBlur = 30 + audio.bass * 50;
+                ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+            }
+            
+            // First circle with gradient
+            const grad1 = ctx.createRadialGradient(c1x, c1y, 0, c1x, c1y, r1);
+            grad1.addColorStop(0, `rgba(255, 215, 0, ${0.3 + audio.bass * 0.4})`);
+            grad1.addColorStop(0.7, `rgba(255, 107, 53, ${0.2 + audio.mid * 0.3})`);
+            grad1.addColorStop(1, 'rgba(255, 0, 110, 0)');
+            
+            ctx.fillStyle = grad1;
+            ctx.beginPath();
+            ctx.arc(c1x, c1y, r1, 0, TAU);
+            ctx.fill();
+            
+            // Second circle
+            const grad2 = ctx.createRadialGradient(c2x, c2y, 0, c2x, c2y, r2);
+            grad2.addColorStop(0, `rgba(255, 215, 0, ${0.3 + audio.treble * 0.4})`);
+            grad2.addColorStop(0.7, `rgba(255, 107, 53, ${0.2 + audio.mid * 0.3})`);
+            grad2.addColorStop(1, 'rgba(255, 0, 110, 0)');
+            
+            ctx.fillStyle = grad2;
+            ctx.beginPath();
+            ctx.arc(c2x, c2y, r2, 0, TAU);
+            ctx.fill();
+            
+            // Intersection lens (the Vesica)
+            ctx.globalCompositeOperation = 'screen';
+            const lensGrad = ctx.createRadialGradient(
+                (c1x + c2x) / 2, (c1y + c2y) / 2, 0,
+                (c1x + c2x) / 2, (c1y + c2y) / 2, Math.min(r1, r2) * 0.8
+            );
+            lensGrad.addColorStop(0, `rgba(255, 255, 255, ${0.4 + audio.overall * 0.6})`);
+            lensGrad.addColorStop(0.5, `rgba(255, 215, 0, ${0.3 + audio.bass * 0.5})`);
+            lensGrad.addColorStop(1, 'rgba(255, 107, 53, 0)');
+            
+            ctx.fillStyle = lensGrad;
+            ctx.beginPath();
+            ctx.arc((c1x + c2x) / 2, (c1y + c2y) / 2, Math.min(r1, r2) * 0.6, 0, TAU);
+            ctx.fill();
+            
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.shadowBlur = 0;
+        }
+        
+        function drawFlowerOfLife(ctx, cx, cy, audio) {
+            const baseR = 80 + audio.bass * 60;
+            const count = 7;
+            
+            ctx.globalCompositeOperation = 'screen';
+            
+            for (let i = 0; i < count; i++) {
+                const angle = i * TAU / 6 + time * 0.1;
+                const dist = i === 0 ? 0 : baseR * 0.866; // √3/2
+                const x = cx + Math.cos(angle) * dist;
+                const y = cy + Math.sin(angle) * dist;
+                
+                const pulse = 1 + Math.sin(time * 2 + i) * 0.1 + audio.mid * 0.3;
+                const r = baseR * pulse;
+                
+                const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+                const alpha = 0.15 + audio.fft[i * 10] / 255 * 0.2;
+                grad.addColorStop(0, `rgba(255, 215, 0, ${alpha})`);
+                grad.addColorStop(0.5, `rgba(255, 107, 53, ${alpha * 0.5})`);
+                grad.addColorStop(1, 'rgba(255, 0, 110, 0)');
+                
+                ctx.strokeStyle = `rgba(255, 215, 0, ${0.3 + audio.fft[i * 10] / 255 * 0.5})`;
+                ctx.lineWidth = 1;
+                ctx.fillStyle = grad;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, TAU);
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            ctx.globalCompositeOperation = 'source-over';
+        }
+        
+        function drawPhyllotaxis(ctx, cx, cy, audio) {
+            const count = 50 + Math.floor(audio.overall * 100);
+            
+            for (let i = 0; i < count; i++) {
+                const angle = i * GOLDEN_ANGLE + time * 0.05;
+                const radius = Math.sqrt(i) * 15 * (1 + audio.bass * 0.5);
+                const x = cx + Math.cos(angle) * radius;
+                const y = cy + Math.sin(angle) * radius;
+                
+                const size = 3 + audio.fft[i % audio.fft.length] / 255 * 5;
+                const hue = (i / count * 60 + 30) % 360; // Gold range
+                
+                ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${0.6 + audio.mid * 0.4})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, TAU);
+                ctx.fill();
+                
+                // Spawn particles on beat
+                if (audio.beat && settings.particles && Math.random() < 0.1) {
+                    spawnParticles(x, y, 1, audio);
+                }
+            }
+        }
+        
+        // ============================================================================
+        // MAIN RENDER LOOP
+        // ============================================================================
+        
+        let time = 0;
+        let reflexCount = 0;
+        let lastFrame = performance.now();
+        
+        function render() {
+            const now = performance.now();
+            const dt = (now - lastFrame) / 1000;
+            lastFrame = now;
+            
+            if (!isPaused) {
+                time += dt;
+                reflexCount++;
+                
+                const audio = getAudio();
+                const cx = width / 2;
+                const cy = height / 2;
+                
+                // Trails or clear
+                if (settings.trails) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                    ctx.fillRect(0, 0, width, height);
+                } else {
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0, 0, width, height);
+                }
+                
+                // Draw phyllotaxis spiral
+                drawPhyllotaxis(ctx, cx, cy, audio);
+                
+                // Draw Flower of Life
+                drawFlowerOfLife(ctx, cx, cy, audio);
+                
+                // Draw Vesica interference
+                const rotation = time * settings.rotationSpeed * (1 + audio.bass);
+                const offset = 60 + audio.mid * 40;
+                const r1 = 100 + audio.bass * 50;
+                const r2 = r1 * PHI * (0.8 + audio.treble * 0.4);
+                
+                drawVesica(ctx, cx, cy, r1, r2, offset, rotation, audio);
+                
+                // Second Vesica (rotated)
+                drawVesica(ctx, cx, cy, r1 * 0.7, r2 * 0.7, offset * 0.5, rotation + Math.PI / 3, audio);
+                
+                // Update and draw particles
+                if (settings.particles) {
+                    for (let i = particles.length - 1; i >= 0; i--) {
+                        particles[i].update();
+                        particles[i].draw(ctx);
+                        if (particles[i].life <= 0) {
+                            particles.splice(i, 1);
+                        }
+                    }
+                }
+                
+                // Beat flash
+                if (audio.beat) {
+                    ctx.fillStyle = `rgba(255, 215, 0, ${0.1 + audio.bass * 0.15})`;
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    // Spawn particles on strong beats
+                    if (settings.particles) {
+                        spawnParticles(cx, cy, 10, audio);
+                    }
+                }
+                
+                // Update UI
+                const emergence = Math.min(1, 0.3 + audio.overall * 0.7 + reflexCount * 0.0001);
+                const coherence = audio.bass * 0.4 + audio.mid * 0.35 + audio.treble * 0.25;
+                
+                document.getElementById('emergence').textContent = emergence.toFixed(3);
+                document.getElementById('emergence-bar').style.width = (emergence * 100) + '%';
+                document.getElementById('coherence').textContent = coherence.toFixed(3);
+                document.getElementById('coherence-bar').style.width = (coherence * 100) + '%';
+                document.getElementById('reflex').textContent = reflexCount;
+                document.getElementById('reflex-bar').style.width = Math.min(100, reflexCount / 100) + '%';
+                document.getElementById('reflex-count').textContent = reflexCount;
+                document.getElementById('fps').textContent = Math.round(1/dt) + ' FPS';
+            }
+            
+            requestAnimationFrame(render);
+        }
+        
+        // Start
+        render();
+        
+        // Keyboard shortcuts
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') togglePause();
+            if (e.key === 'g') toggleGlow();
+            if (e.key === 't') toggleTrails();
+            if (e.key === 'p') toggleParticles();
+        });
+        
+        console.log('🜂 L∞M∆N Transcendent initialized');
+        console.log('🜃 Space = Pause | G = Glow | T = Trails | P = Particles');
+    </script>
+</body>
+</html>

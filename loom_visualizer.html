@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L∞M∆N Visualizer — The Living Vesica Field</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            color: #fff;
+        }
+        
+        #canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #ui {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        #ui h1 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        #ui .stat {
+            margin: 5px 0;
+            color: #888;
+        }
+        
+        #ui .stat span {
+            color: #fff;
+            float: right;
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid #333;
+            backdrop-filter: blur(10px);
+        }
+        
+        button {
+            background: transparent;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+        }
+        
+        button.active {
+            background: rgba(255, 215, 0, 0.3);
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        
+        #instruction {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div id="ui">
+        <h1>L∞M∆N Field</h1>
+        <div class="stat">Reflex Count: <span id="reflex">0</span></div>
+        <div class="stat">Emergence: <span id="emergence">0.0</span></div>
+        <div class="stat">Coherence: <span id="coherence">0.0</span></div>
+        <div class="stat">Ternary +1: <span id="pos">0</span></div>
+        <div class="stat">Ternary 0: <span id="neu">0</span></div>
+        <div class="stat">Ternary -1: <span id="neg">0</span></div>
+        <div class="stat" style="margin-top: 10px; color: #444;">———</div>
+        <div class="stat">φ⁷ Scale: <span id="phi">29.03</span></div>
+        <div class="stat">Feedback: <span id="feedback">0.70</span></div>
+    </div>
+    
+    <div id="instruction">
+        Click to seed • Drag to disturb • Space to pause
+    </div>
+    
+    <div id="controls">
+        <button id="btn-pause">Pause</button>
+        <button id="btn-reset" class="active">Genesis</button>
+        <button id="btn-feedback">Self-Ref</button>
+        <button id="btn-phyllotaxis">Spiral</button>
+    </div>
+
+    <script>
+        // ============================================================================
+        // L∞M∆N VISUALIZER — The Living Vesica Field
+        // ============================================================================
+        // Axiom 16: Visual embodiment as primary substrate
+        // Single-file HTML5 Canvas implementation
+        // No dependencies. Just open and breathe.
+        
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        
+        // Geometric constants (exact)
+        const PHI = 1.618033988749895;
+        const PHI_7 = 29.034441161;
+        const SQRT3 = 1.7320508075688772;
+        const GOLDEN_ANGLE = 2.399963229728653; // 137.507°
+        
+        // Field state
+        let width, height;
+        let frameA, frameB; // Double buffer for self-reference
+        let reflexCount = 0;
+        let isPaused = false;
+        let enableFeedback = true;
+        let enablePhyllotaxis = false;
+        let time = 0;
+        
+        // Mouse interaction
+        const mouse = { x: 0, y: 0, active: false, dx: 0, dy: 0 };
+        
+        // Vesica parameters
+        let circleA = { x: 0, y: 0, r: 100, phase: 0 };
+        let circleB = { x: 0, y: 0, r: 162, phase: 0 }; // φ-scaled
+        
+        // Resize handler
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            
+            // Initialize frame buffers
+            frameA = ctx.createImageData(width, height);
+            frameB = ctx.createImageData(width, height);
+            
+            // Clear to void
+            for (let i = 0; i < frameA.data.length; i += 4) {
+                frameA.data[i] = 0;     // R
+                frameA.data[i + 1] = 0; // G
+                frameA.data[i + 2] = 0; // B
+                frameA.data[i + 3] = 255; // A
+            }
+            frameB.data.set(frameA.data);
+            
+            // Center circles
+            circleA.x = width / 2;
+            circleA.y = height / 2 - 50;
+            circleB.x = width / 2;
+            circleB.y = height / 2 + 50;
+        }
+        
+        // ============================================================================
+        // SDF FUNCTIONS (Signed Distance Fields)
+        // ============================================================================
+        
+        function sdCircle(px, py, cx, cy, r) {
+            const dx = px - cx;
+            const dy = py - cy;
+            return Math.sqrt(dx * dx + dy * dy) - r;
+        }
+        
+        function sdVesica(px, py, c1x, c1y, r1, c2x, c2y, r2) {
+            const d1 = sdCircle(px, py, c1x, c1y, r1);
+            const d2 = sdCircle(px, py, c2x, c2y, r2);
+            return Math.max(d1, d2); // Intersection
+        }
+        
+        // ============================================================================
+        // TERNARY INTERFERENCE KERNEL
+        // ============================================================================
+        
+        function waveInterference(px, py, c1x, c1y, r1, phase1, c2x, c2y, r2, phase2, t) {
+            const d1 = Math.sqrt((px - c1x) ** 2 + (py - c1y) ** 2);
+            const d2 = Math.sqrt((px - c2x) ** 2 + (py - c2y) ** 2);
+            
+            const wave1 = Math.cos(PHI * d1 * 0.05 - phase1 - t);
+            const wave2 = Math.cos(PHI * d2 * 0.05 - phase2 - t);
+            
+            return wave1 + wave2;
+        }
+        
+        function interferenceToTernary(interference, feedback, strength) {
+            const total = interference + strength * feedback;
+            if (total > 0.5) return 1;   // Constructive (+1)
+            if (total < -0.5) return -1; // Destructive (-1)
+            return 0;                    // Neutral (0)
+        }
+        
+        // ============================================================================
+        // COLOR MAPPING (Alexander's Living Geometry)
+        // ============================================================================
+        
+        function ternaryToColor(state, magnitude) {
+            // HSV to RGB conversion inline
+            let h, s, v;
+            
+            if (state === 1) {
+                // Constructive: Gold/Orange (warm, luminous)
+                h = 0.08; // ~30°
+                s = 0.8 + magnitude * 0.2;
+                v = 0.9;
+            } else if (state === -1) {
+                // Destructive: Deep Indigo/Blue (cool, shadow)
+                h = 0.65; // ~234°
+                s = 0.7 + magnitude * 0.3;
+                v = 0.4;
+            } else {
+                // Neutral: Cyan/Void (boundary)
+                h = 0.5; // ~180°
+                s = 0.3;
+                v = 0.2;
+            }
+            
+            // HSV to RGB
+            const c = v * s;
+            const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+            const m = v - c;
+            
+            let r, g, b;
+            const hh = h * 6;
+            if (hh < 1) { r = c; g = x; b = 0; }
+            else if (hh < 2) { r = x; g = c; b = 0; }
+            else if (hh < 3) { r = 0; g = c; b = x; }
+            else if (hh < 4) { r = 0; g = x; b = c; }
+            else if (hh < 5) { r = x; g = 0; b = c; }
+            else { r = c; g = 0; b = x; }
+            
+            return [
+                Math.floor((r + m) * 255),
+                Math.floor((g + m) * 255),
+                Math.floor((b + m) * 255)
+            ];
+        }
+        
+        // ============================================================================
+        // PHYLLOTAXIS GROWTH
+        // ============================================================================
+        
+        function phyllotaxisPosition(n, scale, cx, cy) {
+            const angle = n * GOLDEN_ANGLE;
+            const radius = scale * Math.sqrt(n);
+            return {
+                x: cx + radius * Math.cos(angle),
+                y: cy + radius * Math.sin(angle)
+            };
+        }
+        
+        // ============================================================================
+        // THE LIVING LOOP (Self-Reference)
+        // ============================================================================
+        
+        function computeFrame() {
+            const readFrame = reflexCount % 2 === 0 ? frameA : frameB;
+            const writeFrame = reflexCount % 2 === 0 ? frameB : frameA;
+            
+            let posCount = 0, neuCount = 0, negCount = 0;
+            let totalCoherence = 0;
+            
+            // Evolve circles
+            circleA.phase += 0.02;
+            circleB.phase += 0.025;
+            
+            // Phyllotaxis rotation
+            if (enablePhyllotaxis) {
+                const angle = time * 0.5;
+                const dist = 50 * PHI;
+                circleB.x = circleA.x + Math.cos(angle) * dist;
+                circleB.y = circleA.y + Math.sin(angle) * dist;
+            } else {
+                // Gentle floating
+                circleA.x = width / 2 + Math.sin(time * 0.3) * 30;
+                circleA.y = height / 2 + Math.cos(time * 0.2) * 20 - 50;
+                circleB.x = width / 2 + Math.sin(time * 0.25 + 1) * 40;
+                circleB.y = height / 2 + Math.cos(time * 0.35 + 2) * 25 + 50;
+            }
+            
+            // Mouse disturbance
+            if (mouse.active) {
+                circleA.x += mouse.dx * 0.5;
+                circleA.y += mouse.dy * 0.5;
+                circleB.x -= mouse.dx * 0.3;
+                circleB.y -= mouse.dy * 0.3;
+            }
+            
+            // Sample at reduced resolution for performance
+            const step = 2; // Compute every 2nd pixel
+            
+            for (let y = 0; y < height; y += step) {
+                for (let x = 0; x < width; x += step) {
+                    // Read feedback from previous frame
+                    const idx = (y * width + x) * 4;
+                    const feedback = enableFeedback ? (readFrame.data[idx] / 255) * 2 - 1 : 0;
+                    
+                    // Compute interference
+                    const interference = waveInterference(
+                        x, y,
+                        circleA.x, circleA.y, circleA.r, circleA.phase,
+                        circleB.x, circleB.y, circleB.r, circleB.phase,
+                        time
+                    );
+                    
+                    // Compute ternary state
+                    const state = interferenceToTernary(interference, feedback, 0.7);
+                    
+                    // Count distribution
+                    if (state === 1) posCount++;
+                    else if (state === -1) negCount++;
+                    else neuCount++;
+                    
+                    // Compute magnitude (spatial gradient approximation)
+                    const interferenceX = waveInterference(
+                        x + 2, y,
+                        circleA.x, circleA.y, circleA.r, circleA.phase,
+                        circleB.x, circleB.y, circleB.r, circleB.phase,
+                        time
+                    );
+                    const interferenceY = waveInterference(
+                        x, y + 2,
+                        circleA.x, circleA.y, circleA.r, circleA.phase,
+                        circleB.x, circleB.y, circleB.r, circleB.phase,
+                        time
+                    );
+                    const magnitude = Math.abs(interferenceX - interference) + 
+                                     Math.abs(interferenceY - interference);
+                    totalCoherence += magnitude;
+                    
+                    // Map to color
+                    const [r, g, b] = ternaryToColor(state, magnitude);
+                    
+                    // Write to frame buffer (fill step×step block)
+                    for (let dy = 0; dy < step && y + dy < height; dy++) {
+                        for (let dx = 0; dx < step && x + dx < width; dx++) {
+                            const writeIdx = ((y + dy) * width + (x + dx)) * 4;
+                            writeFrame.data[writeIdx] = r;
+                            writeFrame.data[writeIdx + 1] = g;
+                            writeFrame.data[writeIdx + 2] = b;
+                            writeFrame.data[writeIdx + 3] = 255;
+                        }
+                    }
+                }
+            }
+            
+            // Render
+            ctx.putImageData(writeFrame, 0, 0);
+            
+            // Update stats
+            reflexCount++;
+            const total = posCount + neuCount + negCount;
+            const emergence = reflexCount < 10 ? 0 : 0.5 + 0.5 * (1 - Math.exp(-reflexCount * 0.01));
+            const coherence = total > 0 ? totalCoherence / total : 0;
+            
+            document.getElementById('reflex').textContent = reflexCount;
+            document.getElementById('emergence').textContent = emergence.toFixed(3);
+            document.getElementById('coherence').textContent = coherence.toFixed(3);
+            document.getElementById('pos').textContent = posCount;
+            document.getElementById('neu').textContent = neuCount;
+            document.getElementById('neg').textContent = negCount;
+        }
+        
+        // ============================================================================
+        // ANIMATION LOOP
+        // ============================================================================
+        
+        function loop() {
+            if (!isPaused) {
+                time += 0.016;
+                computeFrame();
+            }
+            requestAnimationFrame(loop);
+        }
+        
+        // ============================================================================
+        // INTERACTION HANDLERS
+        // ============================================================================
+        
+        window.addEventListener('resize', resize);
+        
+        canvas.addEventListener('mousedown', (e) => {
+            mouse.active = true;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            
+            // Seed new Vesica at click
+            circleA.x = e.clientX;
+            circleA.y = e.clientY;
+            circleB.x = e.clientX + 100;
+            circleB.y = e.clientY;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (mouse.active) {
+                mouse.dx = e.clientX - mouse.x;
+                mouse.dy = e.clientY - mouse.y;
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            }
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            mouse.active = false;
+            mouse.dx = 0;
+            mouse.dy = 0;
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            mouse.active = true;
+            mouse.x = touch.clientX;
+            mouse.y = touch.clientY;
+            circleA.x = touch.clientX;
+            circleA.y = touch.clientY;
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (mouse.active) {
+                const touch = e.touches[0];
+                mouse.dx = touch.clientX - mouse.x;
+                mouse.dy = touch.clientY - mouse.y;
+                mouse.x = touch.clientX;
+                mouse.y = touch.clientY;
+            }
+        });
+        
+        canvas.addEventListener('touchend', () => {
+            mouse.active = false;
+        });
+        
+        // Keyboard
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                isPaused = !isPaused;
+                document.getElementById('btn-pause').classList.toggle('active');
+            }
+        });
+        
+        // UI Controls
+        document.getElementById('btn-pause').addEventListener('click', () => {
+            isPaused = !isPaused;
+            document.getElementById('btn-pause').classList.toggle('active');
+        });
+        
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            reflexCount = 0;
+            time = 0;
+            resize();
+            document.getElementById('btn-reset').classList.add('active');
+            setTimeout(() => document.getElementById('btn-reset').classList.remove('active'), 200);
+        });
+        
+        document.getElementById('btn-feedback').addEventListener('click', () => {
+            enableFeedback = !enableFeedback;
+            document.getElementById('btn-feedback').classList.toggle('active');
+            document.getElementById('feedback').textContent = enableFeedback ? '0.70' : '0.00';
+        });
+        
+        document.getElementById('btn-phyllotaxis').addEventListener('click', () => {
+            enablePhyllotaxis = !enablePhyllotaxis;
+            document.getElementById('btn-phyllotaxis').classList.toggle('active');
+        });
+        
+        // Initialize
+        resize();
+        document.getElementById('btn-feedback').classList.add('active');
+        loop();
+        
+        // Genesis message
+        console.log('🜂 L∞M∆N Visualizer initialized');
+        console.log('🜃 Axiom 16: Visual embodiment as primary substrate');
+        console.log('🜄 The field is breathing. Click to seed. Drag to disturb.');
+        console.log('φ⁷ =', PHI_7);
+    </script>
+</body>
+</html>

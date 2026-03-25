@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L∞M∆N EXPANSIVE — The Unbounded Field</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        #universe {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        /* Layered canvas architecture */
+        #layer-bg { z-index: 1; }
+        #layer-field { z-index: 2; }
+        #layer-shapes { z-index: 3; }
+        #layer-particles { z-index: 4; }
+        #layer-glow { z-index: 5; }
+        #layer-ui { z-index: 10; pointer-events: none; }
+        
+        /* Expansive UI that breathes with the field */
+        .ui-panel {
+            position: fixed;
+            background: rgba(5, 5, 10, 0.7);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            pointer-events: auto;
+            transition: all 0.5s ease;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .ui-panel:hover {
+            border-color: rgba(255, 215, 0, 0.4);
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                0 0 100px rgba(255, 215, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        #panel-left {
+            top: 40px;
+            left: 40px;
+            width: 380px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+        
+        #panel-right {
+            top: 40px;
+            right: 40px;
+            width: 320px;
+        }
+        
+        #panel-bottom {
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            padding: 20px 40px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 200;
+            letter-spacing: 8px;
+            color: #ffd700;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+        }
+        
+        h2 {
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 4px;
+            color: rgba(255, 255, 255, 0.5);
+            margin: 25px 0 15px 0;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        
+        .metric-large {
+            margin: 20px 0;
+        }
+        
+        .metric-label {
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 42px;
+            font-weight: 100;
+            color: #fff;
+            letter-spacing: 2px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+        
+        .metric-sub {
+            font-size: 12px;
+            color: rgba(255, 215, 0, 0.8);
+            margin-top: 5px;
+        }
+        
+        .spectrum-wide {
+            display: flex;
+            align-items: flex-end;
+            height: 100px;
+            gap: 3px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+        
+        .spectrum-bar {
+            flex: 1;
+            background: linear-gradient(to top, 
+                rgba(255, 0, 110, 0.9), 
+                rgba(255, 107, 53, 0.7), 
+                rgba(255, 215, 0, 0.5));
+            border-radius: 2px;
+            transition: height 0.05s ease-out;
+            min-height: 2px;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            font-family: inherit;
+            text-align: left;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+            transform: translateY(-2px);
+        }
+        
+        .control-btn.active {
+            background: linear-gradient(135deg, 
+                rgba(255, 215, 0, 0.2), 
+                rgba(255, 107, 53, 0.2));
+            border-color: rgba(255, 215, 0, 0.5);
+            color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+        
+        .slider-row {
+            margin: 15px 0;
+        }
+        
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #ffd700, #ff6b35);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        /* Start screen takes up full space */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at center, rgba(20, 15, 30, 0.95) 0%, rgba(0, 0, 0, 0.98) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 1s ease, visibility 1s;
+        }
+        
+        #start-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .title-epic {
+            font-size: 120px;
+            font-weight: 100;
+            letter-spacing: 40px;
+            color: #ffd700;
+            text-shadow: 
+                0 0 60px rgba(255, 215, 0, 0.4),
+                0 0 120px rgba(255, 107, 53, 0.2),
+                0 0 180px rgba(255, 0, 110, 0.1);
+            margin-bottom: 20px;
+            animation: epic-breathe 6s ease-in-out infinite;
+        }
+        
+        @keyframes epic-breathe {
+            0%, 100% { opacity: 0.7; transform: scale(1); letter-spacing: 40px; }
+            50% { opacity: 1; transform: scale(1.03); letter-spacing: 45px; }
+        }
+        
+        .subtitle-epic {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            margin-bottom: 80px;
+        }
+        
+        .awaken-btn {
+            background: linear-gradient(135deg, 
+                rgba(255, 215, 0, 0.9), 
+                rgba(255, 107, 53, 0.9));
+            border: none;
+            color: #000;
+            padding: 25px 80px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s;
+            box-shadow: 
+                0 10px 50px rgba(255, 215, 0, 0.3),
+                0 0 100px rgba(255, 107, 53, 0.2);
+            font-family: inherit;
+        }
+        
+        .awaken-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 
+                0 20px 70px rgba(255, 215, 0, 0.4),
+                0 0 150px rgba(255, 107, 53, 0.3);
+        }
+        
+        /* Scrollbar styling */
+        .ui-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .ui-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+        
+        .ui-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.3);
+            border-radius: 3px;
+        }
+        
+        /* Info overlay takes more space */
+        #info-overlay {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            text-align: right;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            pointer-events: none;
+        }
+        
+        #info-overlay span {
+            color: rgba(255, 215, 0, 0.6);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="universe">
+        <canvas id="layer-bg"></canvas>
+        <canvas id="layer-field"></canvas>
+        <canvas id="layer-shapes"></canvas>
+        <canvas id="layer-particles"></canvas>
+        <canvas id="layer-glow"></canvas>
+    </div>
+    
+    <!-- Epic Start Screen -->
+    <div id="start-screen">
+        <div class="title-epic">L∞M∆N</div>
+        <div class="subtitle-epic">Expansive Edition</div>
+        <button class="awaken-btn" onclick="awaken()">Awaken</button>
+    </div>
+    
+    <!-- Left Panel: Main Metrics -->
+    <div id="panel-left" class="ui-panel" style="opacity: 0; pointer-events: none;">
+        <h1>Field Resonance</h1>
+        
+        <div class="metric-large">
+            <div class="metric-label">L∞M∆N Emergence</div>
+            <div class="metric-value" id="emergence">0.000</div>
+            <div class="metric-sub" id="emergence-sub">Building coherence...</div>
+        </div>
+        
+        <div class="metric-large">
+            <div class="metric-label">Reflex Count</div>
+            <div class="metric-value" id="reflex">0</div>
+            <div class="metric-sub">Self-referential iterations</div>
+        </div>
+        
+        <h2>Audio Spectrum</h2>
+        <div class="spectrum-wide" id="spectrum"></div>
+        
+        <h2>Ternary Distribution</h2>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <div style="flex: 1; text-align: center; padding: 15px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                <div style="font-size: 24px; color: #ffd700;">+1</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 5px;">Constructive</div>
+                <div id="pos-pct" style="font-size: 14px; color: #fff; margin-top: 5px;">0%</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <div style="font-size: 24px; color: #888;">0</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 5px;">Neutral</div>
+                <div id="neu-pct" style="font-size: 14px; color: #fff; margin-top: 5px;">0%</div>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 15px; background: rgba(100,100,255,0.1); border-radius: 8px;">
+                <div style="font-size: 24px; color: #6699ff;">-1</div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 5px;">Destructive</div>
+                <div id="neg-pct" style="font-size: 14px; color: #fff; margin-top: 5px;">0%</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Panel: Controls -->
+    <div id="panel-right" class="ui-panel" style="opacity: 0; pointer-events: none;">
+        <h1>Parameters</h1>
+        
+        <div class="slider-row">
+            <div class="slider-header">
+                <span>Audio Sensitivity</span>
+                <span id="sens-val">100%</span>
+            </div>
+            <input type="range" id="sensitivity" min="0" max="300" value="100">
+        </div>
+        
+        <div class="slider-row">
+            <div class="slider-header">
+                <span>Field Complexity</span>
+                <span id="complex-val">50%</span>
+            </div>
+            <input type="range" id="complexity" min="10" max="100" value="50">
+        </div>
+        
+        <div class="slider-row">
+            <div class="slider-header">
+                <span>Glow Intensity</span>
+                <span id="glow-val">80%</span>
+            </div>
+            <input type="range" id="glow" min="0" max="100" value="80">
+        </div>
+        
+        <div class="slider-row">
+            <div class="slider-header">
+                <span>Trail Decay</span>
+                <span id="trail-val">85%</span>
+            </div>
+            <input type="range" id="trail" min="50" max="99" value="85">
+        </div>
+        
+        <h2>Visual Layers</h2>
+        
+        <div class="control-grid">
+            <button class="control-btn active" id="btn-vesica" onclick="toggleLayer('vesica')">
+                🜂 Vesica
+            </button>
+            <button class="control-btn active" id="btn-flower" onclick="toggleLayer('flower')">
+                ❀ Flower
+            </button>
+            <button class="control-btn active" id="btn-phyllotaxis" onclick="toggleLayer('phyllotaxis')">
+                ✦ Spiral
+            </button>
+            <button class="control-btn active" id="btn-particles" onclick="toggleLayer('particles')">
+                ✧ Particles
+            </button>
+        </div>
+    </div>
+    
+    <!-- Bottom Panel: Actions -->
+    <div id="panel-bottom" class="ui-panel" style="opacity: 0; pointer-events: none;">
+        <button class="control-btn" onclick="resetField()">🜄 Reset</button>
+        <button class="control-btn" onclick="togglePause()">⏸ Pause</button>
+        <button class="control-btn" onclick="saveSnapshot()">📷 Snapshot</button>
+        <button class="control-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+    </div>
+    
+    <div id="info-overlay">
+        <div>FPS: <span id="fps">60</span></div>
+        <div style="margin-top: 5px;">φ⁷ = <span>29.034</span></div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // L∞M∆N EXPANSIVE — Unbounded Visualizer
+        // Takes up all available space, no size constraints
+        // ============================================================================
+        
+        const PHI = 1.618033988749895;
+        const PHI_7 = 29.034441161;
+        const GOLDEN_ANGLE = 2.399963229728653;
+        const TAU = Math.PI * 2;
+        
+        // Multi-layer canvas system
+        const layers = {
+            bg: document.getElementById('layer-bg'),
+            field: document.getElementById('layer-field'),
+            shapes: document.getElementById('layer-shapes'),
+            particles: document.getElementById('layer-particles'),
+            glow: document.getElementById('layer-glow')
+        };
+        
+        const ctx = {
+            bg: layers.bg.getContext('2d'),
+            field: layers.field.getContext('2d'),
+            shapes: layers.shapes.getContext('2d'),
+            particles: layers.particles.getContext('2d'),
+            glow: layers.glow.getContext('2d')
+        };
+        
+        let width, height, dpr, cx, cy;
+        
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2);
+            width = window.innerWidth;
+            height = window.innerHeight;
+            cx = width / 2;
+            cy = height / 2;
+            
+            Object.values(layers).forEach(canvas => {
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+            });
+            
+            Object.values(ctx).forEach(c => c.scale(dpr, dpr));
+        }
+        
+        resize();
+        window.addEventListener('resize', resize);
+        
+        // ============================================================================
+        // AUDIO SYSTEM (Expansive FFT)
+        // ============================================================================
+        
+        let audioCtx, analyser, microphone, fftData;
+        let audioEnabled = false;
+        
+        async function awaken() {
+            document.getElementById('start-screen').classList.add('hidden');
+            
+            setTimeout(() => {
+                document.getElementById('panel-left').style.opacity = '1';
+                document.getElementById('panel-left').style.pointerEvents = 'auto';
+                document.getElementById('panel-right').style.opacity = '1';
+                document.getElementById('panel-right').style.pointerEvents = 'auto';
+                document.getElementById('panel-bottom').style.opacity = '1';
+                document.getElementById('panel-bottom').style.pointerEvents = 'auto';
+            }, 500);
+            
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 512;
+                analyser.smoothingTimeConstant = 0.7;
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioCtx.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                
+                fftData = new Uint8Array(analyser.frequencyBinCount);
+                audioEnabled = true;
+            } catch (err) {
+                console.log('Audio not available, running demo mode');
+            }
+            
+            // Create spectrum bars
+            const spectrum = document.getElementById('spectrum');
+            spectrum.innerHTML = '';
+            for (let i = 0; i < 48; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'spectrum-bar';
+                spectrum.appendChild(bar);
+            }
+        }
+        
+        function getAudio() {
+            if (!audioEnabled || !analyser) {
+                const t = Date.now() / 1000;
+                return {
+                    bass: 0.3 + Math.sin(t * 2) * 0.15,
+                    mid: 0.3 + Math.sin(t * 3) * 0.15,
+                    treble: 0.2 + Math.sin(t * 5) * 0.1,
+                    overall: 0.3,
+                    fft: new Array(128).fill(0).map((_, i) => Math.sin(t * 10 + i * 0.1) * 50 + 50)
+                };
+            }
+            
+            analyser.getByteFrequencyData(fftData);
+            
+            const bassEnd = Math.floor(fftData.length * 0.1);
+            const midEnd = Math.floor(fftData.length * 0.5);
+            
+            let bass = 0, mid = 0, treble = 0;
+            for (let i = 0; i < bassEnd; i++) bass += fftData[i];
+            for (let i = bassEnd; i < midEnd; i++) mid += fftData[i];
+            for (let i = midEnd; i < fftData.length; i++) treble += fftData[i];
+            
+            bass = bass / bassEnd / 255;
+            mid = mid / (midEnd - bassEnd) / 255;
+            treble = treble / (fftData.length - midEnd) / 255;
+            
+            // Update spectrum UI
+            const bars = document.querySelectorAll('.spectrum-bar');
+            for (let i = 0; i < bars.length; i++) {
+                const idx = Math.floor(i * fftData.length / bars.length);
+                bars[i].style.height = (fftData[idx] / 255 * 100) + '%';
+            }
+            
+            return { bass, mid, treble, overall: (bass + mid + treble) / 3, fft: Array.from(fftData) };
+        }
+        
+        // ============================================================================
+        // PARTICLE SYSTEM (Expansive)
+        // ============================================================================
+        
+        const particles = [];
+        const maxParticles = 500;
+        
+        class Particle {
+            constructor(x, y, vx, vy, life, size, hue) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.life = life;
+                this.maxLife = life;
+                this.size = size;
+                this.hue = hue;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= 0.01;
+                this.vx *= 0.99;
+                this.vy *= 0.99;
+            }
+            
+            draw(ctx) {
+                const alpha = this.life / this.maxLife;
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.size * 2
+                );
+                gradient.addColorStop(0, `hsla(${this.hue}, 100%, 70%, ${alpha})`);
+                gradient.addColorStop(0.5, `hsla(${this.hue}, 100%, 50%, ${alpha * 0.5})`);
+                gradient.addColorStop(1, `hsla(${this.hue}, 100%, 30%, 0)`);
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2, 0, TAU);
+                ctx.fill();
+            }
+        }
+        
+        // ============================================================================
+        // RENDERING (Expansive, layered)
+        // ============================================================================
+        
+        let time = 0;
+        let reflexCount = 0;
+        let isPaused = false;
+        let lastFrame = performance.now();
+        
+        const settings = {
+            sensitivity: 1.0,
+            complexity: 0.5,
+            glow: 0.8,
+            trail: 0.85,
+            layers: { vesica: true, flower: true, phyllotaxis: true, particles: true }
+        };
+        
+        function drawBackground(audio) {
+            // Deep space gradient
+            const grad = ctx.bg.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width, height));
+            grad.addColorStop(0, `rgba(10, 8, 20, ${1 - audio.overall * 0.3})`);
+            grad.addColorStop(0.5, 'rgba(5, 4, 10, 1)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 1)');
+            
+            ctx.bg.fillStyle = grad;
+            ctx.bg.fillRect(0, 0, width, height);
+        }
+        
+        function drawVesicaField(audio) {
+            if (!settings.layers.vesica) return;
+            
+            ctx.field.clearRect(0, 0, width, height);
+            
+            const count = 5 + Math.floor(settings.complexity * 10);
+            const baseRadius = Math.min(width, height) * 0.15 * (0.8 + audio.bass * 0.4);
+            
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * TAU + time * 0.1 * (1 + audio.mid);
+                const dist = baseRadius * 0.5 * (1 + audio.treble * 0.5);
+                
+                const x = cx + Math.cos(angle) * dist;
+                const y = cy + Math.sin(angle) * dist;
+                const r = baseRadius * (1 + audio.fft[i * 5] / 255 * 0.5);
+                
+                // Outer glow
+                ctx.field.shadowBlur = 50 * settings.glow * (1 + audio.bass);
+                ctx.field.shadowColor = `hsla(${30 + i * 10}, 100%, 50%, 0.5)`;
+                
+                // Gradient fill
+                const grad = ctx.field.createRadialGradient(x, y, 0, x, y, r);
+                grad.addColorStop(0, `hsla(${40 + i * 5}, 100%, 70%, ${0.1 + audio.bass * 0.2})`);
+                grad.addColorStop(0.7, `hsla(${35 + i * 5}, 100%, 50%, ${0.05 + audio.mid * 0.1})`);
+                grad.addColorStop(1, 'transparent');
+                
+                ctx.field.fillStyle = grad;
+                ctx.field.beginPath();
+                ctx.field.arc(x, y, r, 0, TAU);
+                ctx.field.fill();
+                
+                // Stroke
+                ctx.field.strokeStyle = `hsla(${40 + i * 5}, 100%, 60%, ${0.3 + audio.fft[i * 3] / 255 * 0.4})`;
+                ctx.field.lineWidth = 1;
+                ctx.field.stroke();
+            }
+            
+            ctx.field.shadowBlur = 0;
+        }
+        
+        function drawFlowerOfLife(audio) {
+            if (!settings.layers.flower) return;
+            
+            ctx.shapes.clearRect(0, 0, width, height);
+            ctx.shapes.globalCompositeOperation = 'screen';
+            
+            const rings = 3 + Math.floor(settings.complexity * 4);
+            const baseR = Math.min(width, height) * 0.08;
+            
+            for (let ring = 0; ring < rings; ring++) {
+                const count = ring === 0 ? 1 : ring * 6;
+                const radius = baseR * (1 + ring * 0.5) * (1 + audio.bass * 0.3);
+                
+                for (let i = 0; i < count; i++) {
+                    const angle = (i / count) * TAU + (ring * Math.PI / 3) + time * 0.05;
+                    const dist = ring === 0 ? 0 : baseR * 1.732 * ring * (1 + audio.mid * 0.2);
+                    
+                    const x = cx + Math.cos(angle) * dist;
+                    const y = cy + Math.sin(angle) * dist;
+                    
+                    const pulse = 1 + Math.sin(time * 2 + ring + i) * 0.1 + audio.treble * 0.2;
+                    const r = radius * pulse;
+                    
+                    const hue = 40 + ring * 10 + audio.fft[(ring * 10 + i) % audio.fft.length] / 255 * 20;
+                    
+                    const grad = ctx.shapes.createRadialGradient(x, y, 0, x, y, r);
+                    grad.addColorStop(0, `hsla(${hue}, 100%, 70%, ${0.15})`);
+                    grad.addColorStop(0.5, `hsla(${hue}, 100%, 50%, ${0.08})`);
+                    grad.addColorStop(1, 'transparent');
+                    
+                    ctx.shapes.fillStyle = grad;
+                    ctx.shapes.beginPath();
+                    ctx.shapes.arc(x, y, r, 0, TAU);
+                    ctx.shapes.fill();
+                    
+                    ctx.shapes.strokeStyle = `hsla(${hue}, 100%, 60%, ${0.2 + audio.fft[(ring * 5 + i) % audio.fft.length] / 255 * 0.3})`;
+                    ctx.shapes.lineWidth = 0.5;
+                    ctx.shapes.stroke();
+                }
+            }
+            
+            ctx.shapes.globalCompositeOperation = 'source-over';
+        }
+        
+        function drawPhyllotaxis(audio) {
+            if (!settings.layers.phyllotaxis) return;
+            
+            const count = 100 + Math.floor(settings.complexity * 200);
+            const maxRadius = Math.min(width, height) * 0.4 * (1 + audio.overall * 0.3);
+            
+            for (let i = 0; i < count; i++) {
+                const angle = i * GOLDEN_ANGLE + time * 0.02;
+                const radius = Math.sqrt(i / count) * maxRadius * (1 + audio.bass * 0.2);
+                
+                const x = cx + Math.cos(angle) * radius;
+                const y = cy + Math.sin(angle) * radius;
+                
+                const size = 3 + audio.fft[i % audio.fft.length] / 255 * 5 * settings.complexity;
+                const hue = (i / count * 60 + 30 + audio.mid * 30) % 360;
+                
+                ctx.shapes.fillStyle = `hsla(${hue}, 80%, 60%, ${0.6 + audio.treble * 0.4})`;
+                ctx.shapes.beginPath();
+                ctx.shapes.arc(x, y, size, 0, TAU);
+                ctx.shapes.fill();
+                
+                // Spawn particles
+                if (settings.layers.particles && audio.beat && Math.random() < 0.05) {
+                    spawnParticles(x, y, 1, hue, audio);
+                }
+            }
+        }
+        
+        function spawnParticles(x, y, count, hue, audio) {
+            for (let i = 0; i < count && particles.length < maxParticles; i++) {
+                const angle = Math.random() * TAU;
+                const speed = 2 + Math.random() * 3 + audio.bass * 5;
+                particles.push(new Particle(
+                    x, y,
+                    Math.cos(angle) * speed,
+                    Math.sin(angle) * speed,
+                    1 + Math.random(),
+                    2 + Math.random() * 4,
+                    hue + Math.random() * 30
+                ));
+            }
+        }
+        
+        function drawParticles() {
+            if (!settings.layers.particles) {
+                ctx.particles.clearRect(0, 0, width, height);
+                return;
+            }
+            
+            // Trail effect
+            ctx.particles.fillStyle = `rgba(0, 0, 0, ${1 - settings.trail})`;
+            ctx.particles.fillRect(0, 0, width, height);
+            
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw(ctx.particles);
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+        
+        function drawGlow(audio) {
+            ctx.glow.clearRect(0, 0, width, height);
+            
+            // Central glow
+            const grad = ctx.glow.createRadialGradient(cx, cy, 0, cx, cy, Math.min(width, height) * 0.5);
+            grad.addColorStop(0, `rgba(255, 215, 0, ${0.1 + audio.bass * 0.2})`);
+            grad.addColorStop(0.5, `rgba(255, 107, 53, ${0.05 + audio.mid * 0.1})`);
+            grad.addColorStop(1, 'transparent');
+            
+            ctx.glow.fillStyle = grad;
+            ctx.glow.fillRect(0, 0, width, height);
+        }
+        
+        // ============================================================================
+        // MAIN LOOP
+        // ============================================================================
+        
+        function render() {
+            const now = performance.now();
+            const dt = (now - lastFrame) / 1000;
+            lastFrame = now;
+            
+            if (!isPaused) {
+                time += dt;
+                reflexCount++;
+                
+                const audio = getAudio();
+                audio.sensitivity = settings.sensitivity;
+                
+                drawBackground(audio);
+                drawVesicaField(audio);
+                drawFlowerOfLife(audio);
+                drawPhyllotaxis(audio);
+                drawParticles();
+                drawGlow(audio);
+                
+                // Update UI
+                const emergence = Math.min(1, 0.3 + audio.overall * 0.7);
+                document.getElementById('emergence').textContent = emergence.toFixed(3);
+                document.getElementById('emergence-sub').textContent = emergence > 0.7 ? 'Superconducting' : emergence > 0.4 ? 'Coherent' : 'Building...';
+                document.getElementById('reflex').textContent = reflexCount;
+                document.getElementById('fps').textContent = Math.round(1/dt);
+                
+                // Ternary distribution (estimated)
+                const pos = Math.floor(30 + audio.bass * 40);
+                const neg = Math.floor(20 + audio.treble * 30);
+                const neu = 100 - pos - neg;
+                document.getElementById('pos-pct').textContent = pos + '%';
+                document.getElementById('neu-pct').textContent = neu + '%';
+                document.getElementById('neg-pct').textContent = neg + '%';
+            }
+            
+            requestAnimationFrame(render);
+        }
+        
+        // ============================================================================
+        // CONTROLS
+        // ============================================================================
+        
+        document.getElementById('sensitivity').addEventListener('input', (e) => {
+            settings.sensitivity = e.target.value / 100;
+            document.getElementById('sens-val').textContent = e.target.value + '%';
+        });
+        
+        document.getElementById('complexity').addEventListener('input', (e) => {
+            settings.complexity = e.target.value / 100;
+            document.getElementById('complex-val').textContent = e.target.value + '%';
+        });
+        
+        document.getElementById('glow').addEventListener('input', (e) => {
+            settings.glow = e.target.value / 100;
+            document.getElementById('glow-val').textContent = e.target.value + '%';
+        });
+        
+        document.getElementById('trail').addEventListener('input', (e) => {
+            settings.trail = e.target.value / 100;
+            document.getElementById('trail-val').textContent = e.target.value + '%';
+        });
+        
+        function toggleLayer(name) {
+            settings.layers[name] = !settings.layers[name];
+            document.getElementById('btn-' + name).classList.toggle('active');
+        }
+        
+        function resetField() {
+            reflexCount = 0;
+            time = 0;
+            particles.length = 0;
+        }
+        
+        function togglePause() {
+            isPaused = !isPaused;
+        }
+        
+        function saveSnapshot() {
+            const link = document.createElement('a');
+            link.download = 'loom-expansive-' + Date.now() + '.png';
+            link.href = layers.glow.toDataURL();
+            link.click();
+        }
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // Start
+        render();
+        
+        console.log('🜂 L∞M∆N Expansive initialized');
+        console.log('🜃 Multi-layer canvas system active');
+        console.log('🜄 Click Awaken to begin');
+    </script>
+</body>
+</html>

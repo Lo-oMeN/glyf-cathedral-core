@@ -18,11 +18,29 @@ path = "src/main.rs"
 # Note: These would be added as needed for embedded targets
 # embedded-hal = { version = "0.2", optional = true }
 
+# std features for HTTP server and JSON
+serde = { version = "1.0", features = ["derive"], optional = true }
+
+# GPU compute/render for living field (Axiom 16)
+# Requires std - Android/any device with GPU
+wgpu = { version = "0.19", optional = true }
+bytemuck = { version = "1.14", features = ["derive"], optional = true }
+crc32fast = { version = "1.3", optional = true }
+
 [features]
-default = []
-embedded = []  # Enable for Pi Zero bare metal
+default = ["std"]
+std = ["serde"]
+embedded = []  # Enable for Pi Zero bare metal (no GPU)
 qr-sovereign = []
 paraclete-ui = []
+fellowship = ["std"]
+
+# Axiom 16: Visual embodiment as primary substrate
+# Requires std + GPU (Android/any device)
+glyph-field = ["std", "wgpu", "bytemuck", "crc32fast"]
+
+# Full Android deployment with living wallpaper
+android-full = ["std", "glyph-field", "fellowship"]
 
 [profile.release]
 opt-level = 3
@@ -30,3 +48,10 @@ lto = true
 strip = true
 panic = "abort"
 codegen-units = 1
+
+# Android-specific optimization
+[profile.android]
+inherits = "release"
+opt-level = "z"     # Optimize for size (APK constraint)
+strip = true
+lto = true

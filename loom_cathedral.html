@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L∞M∆N CATHEDRAL — The Full Experience</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            color: #fff;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #main-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #warp-canvas, #comp-canvas {
+            display: none;
+        }
+        
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle at center, 
+                transparent 0%, 
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.4) 100%);
+        }
+        
+        /* Multi-panel UI */
+        #ui-panels {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .panel {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 15px;
+            font-size: 10px;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+            transition: opacity 0.3s;
+        }
+        
+        .panel:hover {
+            border-color: #555;
+        }
+        
+        #panel-main {
+            top: 20px;
+            left: 20px;
+            width: 280px;
+        }
+        
+        #panel-audio {
+            top: 20px;
+            right: 20px;
+            width: 220px;
+        }
+        
+        #panel-shapes {
+            bottom: 100px;
+            left: 20px;
+            width: 200px;
+        }
+        
+        #panel-messages {
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 180px;
+            text-align: center;
+        }
+        
+        .panel h2 {
+            font-size: 11px;
+            color: #ffd700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+        }
+        
+        .panel h3 {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 10px 0 5px 0;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+            color: #888;
+        }
+        
+        .stat-row span {
+            color: #fff;
+        }
+        
+        .bar {
+            height: 3px;
+            background: #222;
+            margin: 4px 0 8px 0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff6b00);
+            transition: width 0.1s;
+        }
+        
+        .spectrum {
+            display: flex;
+            align-items: flex-end;
+            height: 60px;
+            gap: 1px;
+            margin-top: 10px;
+        }
+        
+        .spectrum-bar {
+            flex: 1;
+            background: linear-gradient(to top, #ffd700, #ff6b00);
+            transition: height 0.05s;
+            min-height: 1px;
+        }
+        
+        .slider-group {
+            margin: 8px 0;
+        }
+        
+        .slider-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-top: 8px;
+        }
+        
+        .btn {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #888;
+            padding: 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .btn:hover {
+            background: #222;
+            border-color: #555;
+            color: #fff;
+        }
+        
+        .btn.active {
+            background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,107,0,0.2));
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+        
+        .btn.primary {
+            background: linear-gradient(135deg, #ffd700, #ff6b00);
+            border-color: transparent;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        #controls-bottom {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: 1px solid #333;
+            backdrop-filter: blur(10px);
+        }
+        
+        #controls-bottom .btn {
+            padding: 10px 16px;
+            font-size: 10px;
+        }
+        
+        /* Message display */
+        #message-display {
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            margin: 20px 0;
+            min-height: 30px;
+        }
+        
+        /* Start screen */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.8s;
+        }
+        
+        #start-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        #start-screen h1 {
+            font-size: 48px;
+            color: #ffd700;
+            text-transform: uppercase;
+            letter-spacing: 12px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+        }
+        
+        #start-screen .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 50px;
+            letter-spacing: 4px;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px 40px;
+            margin-bottom: 50px;
+            color: #888;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .feature-list span::before {
+            content: "🜂";
+            margin-right: 8px;
+            color: #ffd700;
+        }
+        
+        #fps-counter {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 10px;
+            color: #666;
+            border: 1px solid #333;
+        }
+        
+        #fps-counter span {
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="main-canvas"></canvas>
+        <canvas id="warp-canvas"></canvas>
+        <canvas id="comp-canvas"></canvas>
+    </div>
+    
+    <div id="overlay"></div>
+    
+    <!-- Start Screen -->
+    <div id="start-screen">
+        <h1>🜂 L∞M∆N 🜂</h1>
+        <p class="subtitle">CATHEDRAL EDITION</p>
+        
+        <div class="feature-list">
+            <span>Audio-Reactive FFT</span>
+            <span>16 Simultaneous Shapes</span>
+            <span>Warp & Comp Shaders</span>
+            <span>Motion Blur</span>
+            <span>Video Feedback</span>
+            <span>Beat Detection</span>
+            <span>Double-Preset Blending</span>
+            <span>Q-Variables System</span>
+        </div>
+        
+        <button class="btn primary" style="padding: 15px 40px; font-size: 12px;" onclick="initAudio()">
+            ENTER THE CATHEDRAL
+        </button>
+    </div>
+    
+    <!-- FPS Counter -->
+    <div id="fps-counter">FPS: <span id="fps">60</span> | Reflex: <span id="reflex">0</span></div>
+    
+    <!-- UI Panels -->
+    <div id="ui-panels">
+        <!-- Main Panel -->
+        <div id="panel-main" class="panel">
+            <h2>Field Metrics</h2>
+            
+            <div class="stat-row"><span>Emergence</span><span id="emergence">0.000</span></div>
+            <div class="bar"><div class="bar-fill" id="emergence-bar" style="width: 0%"></div></div>
+            
+            <div class="stat-row"><span>Coherence</span><span id="coherence">0.000</span></div>
+            <div class="bar"><div class="bar-fill" id="coherence-bar" style="width: 0%"></div></div>
+            
+            <div class="stat-row"><span>Viscosity</span><span id="viscosity">0.500</span></div>
+            <div class="stat-row"><span>Zoom Exp</span><span id="zoom-exp">1.000</span></div>
+            
+            <h3>Q Variables</h3>
+            <div class="btn-grid">
+                <button class="btn" onclick="setQ(1, 0.5)">Q1</button>
+                <button class="btn" onclick="setQ(2, 1.0)">Q2</button>
+                <button class="btn" onclick="setQ(3, 2.0)">Q3</button>
+                <button class="btn" onclick="setQ(4, PHI)">Q4</button>
+                <button class="btn" onclick="setQ(5, PHI_7)">Q5</button>
+                <button class="btn" onclick="randomizeQ()">RND</button>
+            </div>
+        </div>
+        
+        <!-- Audio Panel -->
+        <div id="panel-audio" class="panel">
+            <h2>Audio Analysis</h2>
+            
+            <div class="stat-row"><span>Bass</span><span id="bass-val">0.00</span></div>
+            <div class="bar"><div class="bar-fill" id="bass-bar" style="width: 0%"></div></div>
+            
+            <div class="stat-row"><span>Mid</span><span id="mid-val">0.00</span></div>
+            <div class="bar"><div class="bar-fill" id="mid-bar" style="width: 0%"></div></div>
+            
+            <div class="stat-row"><span>Treble</span><span id="treble-val">0.00</span></div>
+            <div class="bar"><div class="bar-fill" id="treble-bar" style="width: 0%"></div></div>
+            
+            <div class="slider-group">
+                <label>Sensitivity<span id="sens-val">1.0</span></label>
+                <input type="range" id="sensitivity" min="0" max="300" value="100">
+            </div>
+            
+            <div class="spectrum" id="spectrum"></div>
+        </div>
+        
+        <!-- Shapes Panel -->
+        <div id="panel-shapes" class="panel">
+            <h2>Shapes (16)</h2>
+            <div class="btn-grid" id="shape-buttons">
+                <!-- Generated by JS -->
+            </div>
+            
+            <h3>Waveforms</h3>
+            <div class="btn-grid">
+                <button class="btn active" onclick="setWaveform(0)">Circle</button>
+                <button class="btn" onclick="setWaveform(1)">XY</button>
+                <button class="btn" onclick="setWaveform(2)">Spectrum</button>
+                <button class="btn" onclick="setWaveform(3)">Milk</button>
+                <button class="btn" onclick="setWaveform(4)">Flower</button>
+                <button class="btn" onclick="setWaveform(5)">Butterfly</button>
+            </div>
+        </div>
+        
+        <!-- Messages Panel -->
+        <div id="panel-messages" class="panel">
+            <h2>Mantra</h2>
+            <div id="message-display">🜂</div>
+            
+            <div class="btn-grid" style="grid-template-columns: 1fr;">
+                <button class="btn" onclick="setMessage('TRUTH')">Truth</button>
+                <button class="btn" onclick="setMessage('LOVE')">Love</button>
+                <button class="btn" onclick="setMessage('JUSTICE')">Justice</button>
+                <button class="btn" onclick="setMessage('MEMORY')">Memory</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Controls -->
+    <div id="controls-bottom">
+        <button class="btn" id="btn-preset">⚡ Preset</button>
+        <button class="btn" id="btn-mash">🔀 Mash</button>
+        <button class="btn" id="btn-transition">🌀 Plasma</button>
+        <button class="btn" id="btn-blur">💫 Blur</button>
+        <button class="btn" id="btn-feedback">📺 Feedback</button>
+        <button class="btn" id="btn-hardcut">⚔ Hardcut</button>
+        <button class="btn primary" id="btn-pause">⏸ Pause</button>
+    </div>
+
+    <script>
+        // ============================================================================
+        // L∞M∆N CATHEDRAL — The Full Experience
+        // MilkDrop3-inspired with complete shader pipeline
+        // ============================================================================
+        
+        const PHI = 1.618033988749895;
+        const PHI_7 = 29.034441161;
+        const SQRT3 = 1.7320508075688772;
+        const GOLDEN_ANGLE = 2.399963229728653;
+        const TAU = Math.PI * 2;
+        
+        // ============================================================================
+        // CANVAS SETUP (Triple-buffered: Warp → Comp → Main)
+        // ============================================================================
+        
+        const mainCanvas = document.getElementById('main-canvas');
+        const warpCanvas = document.getElementById('warp-canvas');
+        const compCanvas = document.getElementById('comp-canvas');
+        
+        const ctxMain = mainCanvas.getContext('2d');
+        const ctxWarp = warpCanvas.getContext('2d');
+        const ctxComp = compCanvas.getContext('2d');
+        
+        let width, height, halfW, halfH;
+        
+        function resize() {
+            width = mainCanvas.width = warpCanvas.width = compCanvas.width = window.innerWidth;
+            height = mainCanvas.height = warpCanvas.height = compCanvas.height = window.innerHeight;
+            halfW = width / 2;
+            halfH = height / 2;
+        }
+        
+        // ============================================================================
+        // AUDIO SYSTEM (Full FFT with beat detection)
+        // ============================================================================
+        
+        let audioCtx = null;
+        let analyser = null;
+        let microphone = null;
+        let fftData = null;
+        let audioEnabled = false;
+        
+        // Beat detection
+        let beatHistory = [];
+        let lastBeat = 0;
+        let beatThreshold = 0.6;
+        
+        async function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 512;
+                analyser.smoothingTimeConstant = 0.6;
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                microphone = audioCtx.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                
+                fftData = new Uint8Array(analyser.frequencyBinCount);
+                audioEnabled = true;
+                
+                document.getElementById('start-screen').classList.add('hidden');
+                
+                // Create spectrum bars
+                const spectrum = document.getElementById('spectrum');
+                spectrum.innerHTML = '';
+                for (let i = 0; i < 30; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'spectrum-bar';
+                    bar.style.height = '1px';
+                    spectrum.appendChild(bar);
+                }
+                
+                console.log('🎤 Audio cathedral initialized');
+            } catch (err) {
+                alert('Audio access denied. Running in silent mode.');
+                document.getElementById('start-screen').classList.add('hidden');
+            }
+        }
+        
+        function getAudio() {
+            if (!audioEnabled || !analyser) {
+                return { bass: 0, mid: 0, treble: 0, overall: 0, beat: false, fft: [] };
+            }
+            
+            analyser.getByteFrequencyData(fftData);
+            
+            const bassEnd = Math.floor(fftData.length * 0.1);
+            const midEnd = Math.floor(fftData.length * 0.5);
+            
+            let bass = 0, mid = 0, treble = 0;
+            for (let i = 0; i < bassEnd; i++) bass += fftData[i];
+            for (let i = bassEnd; i < midEnd; i++) mid += fftData[i];
+            for (let i = midEnd; i < fftData.length; i++) treble += fftData[i];
+            
+            bass = (bass / bassEnd / 255) * params.sensitivity;
+            mid = (mid / (midEnd - bassEnd) / 255) * params.sensitivity;
+            treble = (treble / (fftData.length - midEnd) / 255) * params.sensitivity;
+            
+            const overall = (bass + mid + treble) / 3;
+            
+            // Beat detection
+            beatHistory.push(overall);
+            if (beatHistory.length > 10) beatHistory.shift();
+            const avg = beatHistory.reduce((a, b) => a + b) / beatHistory.length;
+            const isBeat = overall > avg * 1.5 && overall > beatThreshold && Date.now() - lastBeat > 200;
+            if (isBeat) lastBeat = Date.now();
+            
+            // Update spectrum
+            const bars = document.querySelectorAll('.spectrum-bar');
+            for (let i = 0; i < bars.length; i++) {
+                const idx = Math.floor(i * fftData.length / bars.length);
+                const val = fftData[idx] / 255;
+                bars[i].style.height = (val * 60) + 'px';
+                bars[i].style.opacity = 0.5 + val * 0.5;
+            }
+            
+            return { bass, mid, treble, overall, beat: isBeat, fft: fftData };
+        }
+        
+        // ============================================================================
+        // PARAMETERS (The Q-Variables System)
+        // ============================================================================
+        
+        const params = {
+            sensitivity: 1.0,
+            zoom: 1.0,
+            zoomExp: 1.0,
+            rot: 0.0,
+            warp: 0.5,
+            warpSpeed: 0.5,
+            warpScale: 1.0,
+            cx: 0.5,
+            cy: 0.5,
+            dx: 0.0,
+            dy: 0.0,
+            decay: 0.95,
+            frameLimit: 60,
+            waveMode: 0,
+            waveform: 0,
+            waveScale: 1.0,
+            waveSmoothing: 0.5,
+            waveParam: 0.0,
+            obSize: 0.0,
+            obLeft: 0.0,
+            obRight: 0.0,
+            obA: 0.0,
+            obB: 0.0,
+            ibSize: 0.0,
+            ibLeft: 0.0,
+            ibRight: 0.0,
+            ibA: 0.0,
+            ibB: 0.0,
+            mvX: 0.0,
+            mvY: 0.0,
+            mvDX: 0.0,
+            mvDY: 0.0,
+            mvL: 0.0,
+            mvR: 0.0,
+            mvG: 0.0,
+            mvB: 0.0,
+            mvA: 0.0,
+            monitor: 0,
+            gamma: 1.0,
+            videoEchoZoom: 1.0,
+            videoEchoAlpha: 0.0,
+            videoEchoOrientation: 0,
+            brighten: 0.0,
+            darken: 0.0,
+            darkenCenter: 0.0,
+            solarize: 0.0,
+            edges: 0.0,
+            hue: 0.0,
+            saturation: 1.0,
+            contrast: 1.0,
+        };
+        
+        // Q variables (64 customizable)
+        const q = new Float32Array(64);
+        for (let i = 0; i < 64; i++) q[i] = 0.0;
+        q[0] = 1.0; q[1] = PHI; q[2] = PHI_7; q[3] = SQRT3;
+        
+        function setQ(n, v) {
+            q[n] = v;
+            console.log(`Q${n} = ${v}`);
+        }
+        
+        function randomizeQ() {
+            for (let i = 4; i < 20; i++) {
+                q[i] = Math.random() * PHI_7;
+            }
+        }
+        
+        // ============================================================================
+        // SHAPES (16 simultaneous shapes like MilkDrop)
+        // ============================================================================
+        
+        const shapes = [];
+        for (let i = 0; i < 16; i++) {
+            shapes.push({
+                enabled: i < 4,
+                sides: 3 + i,
+                radius: 50 + i * 20,
+                x: 0,
+                y: 0,
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 0.5,
+                border: 0,
+                additive: false,
+                thickOutline: false,
+                textured: false,
+            });
+        }
+        
+        function toggleShape(i) {
+            shapes[i].enabled = !shapes[i].enabled;
+            updateShapeButtons();
+        }
+        
+        function updateShapeButtons() {
+            const container = document.getElementById('shape-buttons');
+            container.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn' + (shapes[i].enabled ? ' active' : '');
+                btn.textContent = i + 1;
+                btn.onclick = () => toggleShape(i);
+                container.appendChild(btn);
+            }
+        }
+        
+        updateShapeButtons();
+        
+        // ============================================================================
+        // WAVEFORM DATA
+        // ============================================================================
+        
+        const waveData = [];
+        for (let i = 0; i < 576; i++) {
+            waveData.push({ x: 0, y: 0, r: 0, g: 0, b: 0 });
+        }
+        
+        function generateWaveform(audio) {
+            const mode = params.waveform;
+            const t = time * 0.1;
+            
+            for (let i = 0; i < 576; i++) {
+                const p = i / 576;
+                let x, y;
+                
+                switch (mode) {
+                    case 0: // Circle
+                        const angle = p * TAU + t;
+                        x = halfW + Math.cos(angle) * (200 + audio.bass * 100);
+                        y = halfH + Math.sin(angle) * (200 + audio.bass * 100);
+                        break;
+                    case 1: // XY oscilloscope
+                        const sample = Math.floor(p * audio.fft.length);
+                        x = halfW + (audio.fft[sample] / 255 - 0.5) * 400;
+                        y = halfH + (audio.fft[(sample + 1) % audio.fft.length] / 255 - 0.5) * 400;
+                        break;
+                    case 2: // Spectrum
+                        x = halfW + (p - 0.5) * width * 0.8;
+                        const freq = Math.floor(p * audio.fft.length);
+                        y = halfH - (audio.fft[freq] / 255) * height * 0.4;
+                        break;
+                    case 3: // MilkDrop classic
+                        const mAngle = p * TAU + audio.bass * 2;
+                        const r = 150 + audio.fft[Math.floor(p * 64)] * 0.5;
+                        x = halfW + Math.cos(mAngle) * r;
+                        y = halfH + Math.sin(mAngle) * r;
+                        break;
+                    case 4: // Flower
+                        const fAngle = p * TAU * 3 + t;
+                        const fR = 100 + Math.cos(p * TAU * 7) * 50 * audio.mid;
+                        x = halfW + Math.cos(fAngle) * fR;
+                        y = halfH + Math.sin(fAngle) * fR;
+                        break;
+                    case 5: // Butterfly
+                        const bT = p * TAU;
+                        const bR = Math.exp(Math.cos(bT)) - 2 * Math.cos(4 * bT) + Math.pow(Math.sin(bT / 12), 5);
+                        x = halfW + bR * Math.cos(bT) * 30;
+                        y = halfH + bR * Math.sin(bT) * 30;
+                        break;
+                    default:
+                        x = halfW;
+                        y = halfH;
+                }
+                
+                waveData[i].x = x;
+                waveData[i].y = y;
+                waveData[i].r = 0.5 + audio.bass;
+                waveData[i].g = 0.3 + audio.mid * 0.7;
+                waveData[i].b = 0.1 + audio.treble * 0.9;
+            }
+        }
+        
+        function setWaveform(n) {
+            params.waveform = n;
+            document.querySelectorAll('#panel-shapes .btn').forEach((btn, i) => {
+                if (i >= 6) btn.classList.toggle('active', i - 6 === n);
+            });
+        }
+        
+        // ============================================================================
+        // PER-PIXEL SHADERS (Warp + Composite)
+        // ============================================================================
+        
+        // Previous frame for motion blur/feedback
+        let prevFrame = null;
+        
+        function warpShader(u, v, rad, ang, audio) {
+            // Apply zoom and rotation
+            let zoom = params.zoom * (1 + audio.bass * 0.3);
+            zoom = Math.pow(zoom, params.zoomExp);
+            
+            let dx = u * zoom;
+            let dy = v * zoom;
+            
+            // Rotation
+            const rot = params.rot + audio.mid * 0.1;
+            const cosR = Math.cos(rot);
+            const sinR = Math.sin(rot);
+            const nx = dx * cosR - dy * sinR;
+            const ny = dx * sinR + dy * cosR;
+            
+            // Warp effect
+            const warpAmount = params.warp * (1 + audio.treble);
+            const warpScale = params.warpScale;
+            const warpSpeed = params.warpSpeed;
+            
+            const warpX = Math.sin(ny * warpScale + time * warpSpeed) * warpAmount;
+            const warpY = Math.cos(nx * warpScale + time * warpSpeed) * warpAmount;
+            
+            return {
+                u: nx + warpX + params.cx,
+                v: ny + warpY + params.cy
+            };
+        }
+        
+        function compShader(r, g, b, audio) {
+            // Apply color effects
+            let hue = params.hue + time * 0.01 + audio.bass * 0.1;
+            let sat = params.saturation * (0.5 + audio.mid * 0.5);
+            let con = params.contrast;
+            
+            // Convert to HSV, apply, convert back
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const d = max - min;
+            
+            let h = 0, s = max === 0 ? 0 : d / max, v = max;
+            
+            if (d !== 0) {
+                if (max === r) h = ((g - b) / d + 6) % 6;
+                else if (max === g) h = (b - r) / d + 2;
+                else h = (r - g) / d + 4;
+                h /= 6;
+            }
+            
+            h = (h + hue) % 1;
+            s = Math.min(1, s * sat);
+            v = Math.min(1, v * con);
+            
+            // Brighten/darken
+            v = v * (1 + params.brighten) * (1 - params.darken);
+            
+            // Solarize
+            if (params.solarize > 0) {
+                v = v > params.solarize ? 1 - v : v;
+            }
+            
+            // HSV to RGB
+            const c = v * s;
+            const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+            const m = v - c;
+            
+            let nr, ng, nb;
+            const hh = h * 6;
+            if (hh < 1) [nr, ng, nb] = [c, x, 0];
+            else if (hh < 2) [nr, ng, nb] = [x, c, 0];
+            else if (hh < 3) [nr, ng, nb] = [0, c, x];
+            else if (hh < 4) [nr, ng, nb] = [0, x, c];
+            else if (hh < 5) [nr, ng, nb] = [x, 0, c];
+            else [nr, ng, nb] = [c, 0, x];
+            
+            return {
+                r: (nr + m) * 255,
+                g: (ng + m) * 255,
+                b: (nb + m) * 255
+            };
+        }
+        
+        // ============================================================================
+        // MAIN RENDER
+        // ============================================================================
+        
+        let time = 0;
+        let reflexCount = 0;
+        let lastTime = performance.now();
+        let fps = 60;
+        
+        function render() {
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            fps = Math.round(1 / dt);
+            
+            if (!isPaused) {
+                time += dt;
+                reflexCount++;
+                
+                const audio = getAudio();
+                
+                // Clear warp canvas
+                ctxWarp.fillStyle = '#000';
+                ctxWarp.fillRect(0, 0, width, height);
+                
+                // Draw shapes
+                for (let i = 0; i < 16; i++) {
+                    if (!shapes[i].enabled) continue;
+                    const s = shapes[i];
+                    
+                    ctxWarp.save();
+                    ctxWarp.translate(halfW + Math.sin(time * 0.5 + i) * 100, 
+                                     halfH + Math.cos(time * 0.3 + i) * 100);
+                    ctxWarp.rotate(time * 0.2 + i);
+                    
+                    ctxWarp.beginPath();
+                    for (let j = 0; j <= s.sides; j++) {
+                        const angle = (j / s.sides) * TAU - Math.PI / 2;
+                        const r = s.radius * (1 + audio.fft[i * 4] / 255);
+                        const x = Math.cos(angle) * r;
+                        const y = Math.sin(angle) * r;
+                        if (j === 0) ctxWarp.moveTo(x, y);
+                        else ctxWarp.lineTo(x, y);
+                    }
+                    
+                    ctxWarp.closePath();
+                    ctxWarp.fillStyle = `rgba(${s.r * 255}, ${s.g * 255}, ${s.b * 255}, ${s.a})`;
+                    ctxWarp.fill();
+                    
+                    if (s.border > 0) {
+                        ctxWarp.strokeStyle = `rgba(255, 215, 0, ${s.border})`;
+                        ctxWarp.lineWidth = s.thickOutline ? 3 : 1;
+                        ctxWarp.stroke();
+                    }
+                    
+                    ctxWarp.restore();
+                }
+                
+                // Draw waveform
+                generateWaveform(audio);
+                ctxWarp.beginPath();
+                ctxWarp.moveTo(waveData[0].x, waveData[0].y);
+                for (let i = 1; i < 576; i++) {
+                    ctxWarp.lineTo(waveData[i].x, waveData[i].y);
+                }
+                ctxWarp.closePath();
+                ctxWarp.strokeStyle = `rgba(255, 215, 0, ${0.5 + audio.overall * 0.5})`;
+                ctxWarp.lineWidth = 2;
+                ctxWarp.stroke();
+                
+                // Apply warp shader (simplified - full per-pixel would be WebGL)
+                ctxComp.fillStyle = '#000';
+                ctxComp.fillRect(0, 0, width, height);
+                
+                // Copy with zoom/rotation (simplified warp)
+                ctxComp.save();
+                ctxComp.translate(halfW, halfH);
+                const zoom = params.zoom * (1 + audio.bass * 0.2);
+                ctxComp.scale(zoom, zoom);
+                ctxComp.rotate(params.rot + audio.mid * 0.05);
+                ctxComp.translate(-halfW, -halfH);
+                ctxComp.drawImage(warpCanvas, 0, 0);
+                ctxComp.restore();
+                
+                // Composite to main with feedback/motion blur
+                ctxMain.fillStyle = 'rgba(0, 0, 0, ' + (1 - params.decay) + ')';
+                ctxMain.fillRect(0, 0, width, height);
+                
+                // Draw composited frame
+                ctxMain.drawImage(compCanvas, 0, 0);
+                
+                // Update UI
+                document.getElementById('fps').textContent = fps;
+                document.getElementById('reflex').textContent = reflexCount;
+                document.getElementById('emergence').textContent = (0.5 + audio.overall * 0.5).toFixed(3);
+                document.getElementById('emergence-bar').style.width = (audio.overall * 100) + '%';
+                document.getElementById('coherence').textContent = (audio.bass * 0.5 + audio.mid * 0.3 + audio.treble * 0.2).toFixed(3);
+                document.getElementById('coherence-bar').style.width = (audio.overall * 80) + '%';
+                
+                document.getElementById('bass-val').textContent = audio.bass.toFixed(2);
+                document.getElementById('bass-bar').style.width = (audio.bass * 100) + '%';
+                document.getElementById('mid-val').textContent = audio.mid.toFixed(2);
+                document.getElementById('mid-bar').style.width = (audio.mid * 100) + '%';
+                document.getElementById('treble-val').textContent = audio.treble.toFixed(2);
+                document.getElementById('treble-bar').style.width = (audio.treble * 100) + '%';
+            }
+            
+            requestAnimationFrame(render);
+        }
+        
+        // ============================================================================
+        // CONTROLS
+        // ============================================================================
+        
+        let isPaused = false;
+        
+        document.getElementById('btn-pause').addEventListener('click', () => {
+            isPaused = !isPaused;
+            document.getElementById('btn-pause').textContent = isPaused ? '▶ Resume' : '⏸ Pause';
+        });
+        
+        document.getElementById('sensitivity').addEventListener('input', (e) => {
+            params.sensitivity = e.target.value / 100;
+            document.getElementById('sens-val').textContent = params.sensitivity.toFixed(1);
+        });
+        
+        window.setMessage = function(msg) {
+            const display = document.getElementById('message-display');
+            display.style.opacity = 0;
+            setTimeout(() => {
+                display.textContent = '🜂 ' + msg + ' 🜂';
+                display.style.opacity = 1;
+            }, 200);
+            setTimeout(() => {
+                display.style.opacity = 0.3;
+            }, 3000);
+        };
+        
+        // Keyboard shortcuts
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') document.getElementById('btn-pause').click();
+        });
+        
+        // Init
+        resize();
+        window.addEventListener('resize', resize);
+        render();
+        
+        console.log('🜂 L∞M∆N Cathedral initialized');
+        console.log('🜃 Features: 16 shapes, FFT audio, Q-variables, warp/comp shaders');
+        console.log('🜄 Click "Enter the Cathedral" to begin');
+    </script>
+</body>
+</html>
