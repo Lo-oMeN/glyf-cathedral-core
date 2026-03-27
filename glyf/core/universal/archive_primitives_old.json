@@ -1,0 +1,121 @@
+{
+  "name": "universal-glyphabetic",
+  "version": "1.0.0",
+  "description": "Universal Glyphabetic Dictionary - 7 geometric primitives for semantic encoding",
+  "primitives": {
+    "C": {
+      "glyph": "C",
+      "name": "Curve",
+      "meaning": "Flow",
+      "essence": "movement, fluidity, continuous change, grace",
+      "dimension": 0,
+      "range": [0.0, 1.0],
+      "visual": "smooth continuous curve without straight sections"
+    },
+    "L": {
+      "glyph": "L",
+      "name": "Line",
+      "meaning": "Structure",
+      "essence": "stability, connection, order, foundation",
+      "dimension": 1,
+      "range": [0.0, 1.0],
+      "visual": "straight segment between two points"
+    },
+    "A": {
+      "glyph": "A",
+      "name": "Angle",
+      "meaning": "Discontinuity",
+      "essence": "sharpness, change of direction, decision points",
+      "dimension": 2,
+      "range": [0.0, 1.0],
+      "visual": "two lines meeting at a vertex"
+    },
+    "V": {
+      "glyph": "V",
+      "name": "Vesica",
+      "meaning": "Intersection",
+      "essence": "overlap, union, shared space, duality merging",
+      "dimension": 3,
+      "range": [0.0, 1.0],
+      "visual": "lens-shaped overlap of two circles"
+    },
+    "S": {
+      "glyph": "S",
+      "name": "Spiral",
+      "meaning": "Growth",
+      "essence": "evolution, expansion, recursion, time",
+      "dimension": 4,
+      "range": [0.0, 1.0],
+      "visual": "curve winding around a center, expanding or contracting"
+    },
+    "N": {
+      "glyph": "N",
+      "name": "Node",
+      "meaning": "Terminus",
+      "essence": "endpoints, convergence, origin, destination",
+      "dimension": 5,
+      "range": [0.0, 1.0],
+      "visual": "point where multiple lines meet or end"
+    },
+    "F": {
+      "glyph": "F",
+      "name": "Field",
+      "meaning": "Containment",
+      "essence": "boundaries, enclosure, protection, limits",
+      "dimension": 6,
+      "range": [0.0, 1.0],
+      "visual": "closed boundary enclosing an area"
+    }
+  },
+  "word_mappings": {
+    "RIVER": {"vector": [0.9, 0.4, 0.1, 0.3, 0.2, 0.2, 0.3], "signature": "+C-L-A-V-S-N-F"},
+    "PATH": {"vector": [0.6, 0.8, 0.3, 0.2, 0.2, 0.5, 0.2], "signature": "C+L-A-V-S+N-F"},
+    "DANCE": {"vector": [0.9, 0.3, 0.4, 0.3, 0.6, 0.2, 0.1], "signature": "+C-L+A-V+S-N-F"},
+    "HOUSE": {"vector": [0.2, 0.8, 0.7, 0.4, 0.1, 0.4, 0.9], "signature": "-C+L+A+V-S-N+F"},
+    "BRIDGE": {"vector": [0.3, 0.9, 0.2, 0.5, 0.1, 0.6, 0.2], "signature": "-C+L-V+S-N-F"},
+    "TOWER": {"vector": [0.1, 0.9, 0.3, 0.2, 0.7, 0.8, 0.5], "signature": "-C+L-A-V+S+N+F"},
+    "EDGE": {"vector": [0.3, 0.6, 0.9, 0.4, 0.2, 0.5, 0.3], "signature": "-C+L+A+V-S+N-F"},
+    "BREAK": {"vector": [0.4, 0.3, 0.9, 0.3, 0.2, 0.6, 0.2], "signature": "C-L+A-V-S+N-F"},
+    "THORN": {"vector": [0.2, 0.5, 0.9, 0.3, 0.4, 0.7, 0.1], "signature": "-C+L+A-V+S+N-F"},
+    "CROSS": {"vector": [0.2, 0.7, 0.6, 0.9, 0.2, 0.5, 0.2], "signature": "-C+L+A+V-S+N-F"},
+    "MEET": {"vector": [0.4, 0.4, 0.3, 0.9, 0.2, 0.6, 0.2], "signature": "C-L-A+V-S+N-F"},
+    "KNOT": {"vector": [0.5, 0.5, 0.4, 0.8, 0.3, 0.9, 0.3], "signature": "C+L+A+V-S+N-F"},
+    "TREE": {"vector": [0.4, 0.6, 0.3, 0.2, 0.9, 0.5, 0.4], "signature": "C+L-A-V+S+N-F"},
+    "SEED": {"vector": [0.2, 0.3, 0.2, 0.3, 0.9, 0.6, 0.6], "signature": "-C-L-A-V+S+N+F"},
+    "WAVE": {"vector": [0.9, 0.3, 0.2, 0.2, 0.7, 0.3, 0.1], "signature": "+C-L-A-V+S-N-F"},
+    "DOOR": {"vector": [0.2, 0.7, 0.5, 0.5, 0.1, 0.9, 0.6], "signature": "-C+L+A+V-S+N+F"},
+    "GOAL": {"vector": [0.3, 0.5, 0.3, 0.4, 0.4, 0.9, 0.3], "signature": "-C+L-A+V+S+N-F"},
+    "HEART": {"vector": [0.6, 0.3, 0.2, 0.6, 0.3, 0.8, 0.4], "signature": "C-L-A+V-S+N+F"},
+    "BOWL": {"vector": [0.5, 0.4, 0.2, 0.3, 0.2, 0.3, 0.9], "signature": "C+L-A-V-S-N+F"},
+    "WOMB": {"vector": [0.6, 0.2, 0.1, 0.4, 0.7, 0.4, 0.9], "signature": "C-L-A+V+S-N+F"}
+  },
+  "combination_rules": {
+    "C+L": "Flexible structure, adaptive framework",
+    "C+A": "Sudden change in flow, turbulence",
+    "C+V": "Converging flows, merging streams",
+    "C+S": "Cyclical flow, rhythmic movement",
+    "C+N": "Flow termination, drainage point",
+    "C+F": "Contained flow, channel, pipe",
+    "L+A": "Structural corner, rigid turn",
+    "L+V": "Structural intersection, crossroads",
+    "L+S": "Progressive structure, scaffolding",
+    "L+N": "Line endpoint, structural anchor",
+    "L+F": "Enclosed structure, container walls",
+    "A+V": "Angular intersection, sharp meeting",
+    "A+S": "Growing angle, widening divergence",
+    "A+N": "Angular terminus, pointed end",
+    "A+F": "Bounded angle, corner containment",
+    "V+S": "Expanding intersection, multiplying overlap",
+    "V+N": "Meeting point, convergence terminus",
+    "V+F": "Contained intersection, bounded union",
+    "S+N": "Growth endpoint, maturity",
+    "S+F": "Bounded growth, cultivated development",
+    "N+F": "Enclosed endpoint, sealed container"
+  },
+  "semantic_axes": {
+    "dynamic_static": {"dynamic": ["C", "S"], "static": ["L", "F"]},
+    "open_closed": {"open": ["C", "S"], "closed": ["F", "N"]},
+    "continuous_discrete": {"continuous": ["C", "S"], "discrete": ["A", "N"]},
+    "internal_external": {"internal": ["V", "F"], "external": ["L", "N"]}
+  }
+}

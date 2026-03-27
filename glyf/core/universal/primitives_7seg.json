@@ -1,0 +1,195 @@
+{
+  "name": "universal-glyphabetic-7seg",
+  "version": "2.0.0",
+  "description": "7-Segment Canonical Display Dictionary - Semantic encoding via segment activation",
+  "canonical_grid": {
+    "visual": "\n -- A -- \n|       |\nF       B\n|       |\n -- G --  \n|       |\nE       C\n|       |\n -- D -- \n",
+    "segments": {
+      "A": {
+        "position": "top",
+        "meanings": ["Crown", "Apex", "Above"],
+        "qualities": ["authority", "summit", "visibility", "emergence"]
+      },
+      "B": {
+        "position": "upper-right",
+        "meanings": ["Outward", "External"],
+        "qualities": ["expression", "projection", "giving", "surface"]
+      },
+      "C": {
+        "position": "lower-right",
+        "meanings": ["Outward", "External"],
+        "qualities": ["extension", "reach", "conclusion", "edge"]
+      },
+      "D": {
+        "position": "bottom",
+        "meanings": ["Foundation", "Below"],
+        "qualities": ["support", "root", "grounding", "source"]
+      },
+      "E": {
+        "position": "lower-left",
+        "meanings": ["Inward", "Internal"],
+        "qualities": ["reception", "containment", "gathering"]
+      },
+      "F": {
+        "position": "upper-left",
+        "meanings": ["Inward", "Internal"],
+        "qualities": ["intention", "origin", "initiation", "core"]
+      },
+      "G": {
+        "position": "middle",
+        "meanings": ["Balance", "Bridge"],
+        "qualities": ["connection", "mediation", "transition", "axis"]
+      }
+    }
+  },
+  "archetype_mappings": {
+    "TOWER": {
+      "vector": [1.0, 0.2, 0.2, 1.0, 0.2, 0.2, 1.0],
+      "active": "A-D-G",
+      "segments_binary": "1001001",
+      "meaning": "Vertical aspiration, reaching upward from foundation through central axis"
+    },
+    "TREE": {
+      "vector": [1.0, 0.6, 0.5, 1.0, 0.4, 0.5, 1.0],
+      "active": "A-B-C-D-F-G",
+      "segments_binary": "1111011",
+      "meaning": "Rooted growth with spreading branches - crown and foundation connected via bridge"
+    },
+    "PILLAR": {
+      "vector": [1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],
+      "active": "A-D",
+      "segments_binary": "1001000",
+      "meaning": "Unbroken vertical support - crown directly above foundation, no mediation"
+    },
+    "ROOT": {
+      "vector": [0.3, 0.1, 0.1, 1.0, 0.8, 0.8, 0.0],
+      "active": "D-E-F",
+      "segments_binary": "0001110",
+      "meaning": "Deep grounding with inward gathering - foundation drawing from internal sources"
+    },
+    "BASE": {
+      "vector": [0.2, 0.5, 0.5, 1.0, 0.5, 0.5, 0.0],
+      "active": "B-C-D-E-F",
+      "segments_binary": "0111110",
+      "meaning": "Stable platform with balanced sides - grounded presence reaching outward and inward"
+    },
+    "CROWN": {
+      "vector": [1.0, 0.8, 0.3, 0.2, 0.1, 0.3, 0.0],
+      "active": "A-B",
+      "segments_binary": "1100000",
+      "meaning": "Apex authority with outward projection - visibility and expression from above"
+    },
+    "SUMMIT": {
+      "vector": [1.0, 0.2, 0.1, 0.0, 0.1, 0.8, 0.0],
+      "active": "A-F",
+      "segments_binary": "1000010",
+      "meaning": "Peak insight - crown with internal origin, vision from above"
+    },
+    "BRIDGE": {
+      "vector": [0.6, 0.2, 0.2, 0.6, 0.2, 0.2, 1.0],
+      "active": "A-D-G",
+      "segments_binary": "1001001",
+      "meaning": "Connection between realms - G mediates between upper and lower"
+    },
+    "AXIS": {
+      "vector": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+      "active": "G",
+      "segments_binary": "0000001",
+      "meaning": "Central line alone - pure mediation without boundary"
+    },
+    "GATE": {
+      "vector": [0.8, 0.3, 0.3, 0.0, 0.3, 0.3, 1.0],
+      "active": "A-E-F-G",
+      "segments_binary": "1000111",
+      "meaning": "Threshold with crown and bridge - passage point between spaces"
+    },
+    "WALL": {
+      "vector": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0],
+      "active": "A-B-C-D-E-F",
+      "segments_binary": "1111110",
+      "meaning": "Complete enclosure without bridge - boundary, separation, protection"
+    },
+    "ROOM": {
+      "vector": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "active": "A-B-C-D-E-F-G",
+      "segments_binary": "1111111",
+      "meaning": "Contained space with access - enclosure with central bridge/doorway"
+    },
+    "BOWL": {
+      "vector": [0.0, 0.6, 0.6, 0.8, 0.6, 0.6, 0.0],
+      "active": "B-C-D-E-F",
+      "segments_binary": "0111110",
+      "meaning": "Receptacle open to above - foundation holding with sides reaching up"
+    },
+    "PATH": {
+      "vector": [0.2, 0.8, 0.9, 0.7, 0.1, 0.2, 0.0],
+      "active": "B-C-D",
+      "segments_binary": "0111000",
+      "meaning": "Way moving outward and down - exit trajectory, descent to exterior"
+    },
+    "ENTRANCE": {
+      "vector": [0.8, 0.1, 0.0, 0.8, 0.9, 0.8, 0.0],
+      "active": "A-D-E-F",
+      "segments_binary": "1001110",
+      "meaning": "Left arch descending - entry from above via internal gathering"
+    },
+    "EXIT": {
+      "vector": [0.8, 0.9, 0.8, 0.7, 0.0, 0.1, 0.0],
+      "active": "A-B-C-D",
+      "segments_binary": "1111000",
+      "meaning": "Right arch descending - departure to exterior, outward journey"
+    },
+    "ARROW": {
+      "vector": [0.9, 1.0, 0.9, 0.1, 0.0, 0.0, 0.0],
+      "active": "A-B-C",
+      "segments_binary": "1110000",
+      "meaning": "Direction pointing right - crown with full outward extension"
+    },
+    "SHIELD": {
+      "vector": [0.3, 0.0, 0.0, 0.3, 0.9, 0.9, 0.0],
+      "active": "A-D-E-F",
+      "segments_binary": "1000110",
+      "meaning": "Internal protection - left side guarding crown and foundation"
+    },
+    "RESILIENCE": {
+      "vector": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+      "active": "A-B-C-D-E-F-G",
+      "segments_binary": "1111111",
+      "meaning": "Complete activation - all directions engaged, wholeness under pressure"
+    },
+    "FLEX": {
+      "vector": [0.6, 0.3, 0.3, 0.6, 0.3, 0.3, 1.0],
+      "active": "A-D-G",
+      "segments_binary": "1001001",
+      "meaning": "Bending without breaking - bridge-mediated vertical with soft sides"
+    },
+    "RECOVER": {
+      "vector": [0.7, 0.2, 0.2, 0.9, 0.2, 0.3, 0.8],
+      "active": "A-D-G",
+      "segments_binary": "1001001",
+      "meaning": "Rising from foundation - strong base with upward bridge connection"
+    }
+  },
+  "pattern_families": {
+    "vertical": ["TOWER", "TREE", "PILLAR", "BRIDGE", "FLEX", "RECOVER"],
+    "foundation": ["ROOT", "BASE"],
+    "crown": ["CROWN", "SUMMIT"],
+    "enclosure": ["WALL", "ROOM", "BOWL"],
+    "directional": ["PATH", "ENTRANCE", "EXIT", "ARROW"],
+    "wholeness": ["RESILIENCE", "ROOM"]
+  },
+  "semantic_axes": {
+    "vertical_horizontal": {
+      "vertical_indicators": ["A", "G", "D"],
+      "horizontal_indicators": ["B", "C", "E", "F"]
+    },
+    "internal_external": {
+      "internal": ["E", "F"],
+      "external": ["B", "C"]
+    },
+    "open_closed": {
+      "open_signs": ["A_inactive", "perimeter_incomplete"],
+      "closed_signs": ["full_perimeter"]
+    }
+  }
+}
