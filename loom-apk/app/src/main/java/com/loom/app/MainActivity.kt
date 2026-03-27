@@ -1,9 +1,6 @@
 package com.loom.app
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.view.Choreographer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
@@ -22,78 +19,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlin.math.*
-import android.util.Log
-import java.io.File
-import java.io.FileOutputStream
-import java.io.FileInputStream
 
 class MainActivity : ComponentActivity() {
-    
-    private lateinit var stateMachine: StateMachine
-    private val resurrectionLog = StringBuilder()
-    private var coldStartTime: Long = 0
-    
     override fun onCreate(savedInstanceState: Bundle?) {
-        coldStartTime = System.nanoTime()
         super.onCreate(savedInstanceState)
-        
-        stateMachine = StateMachine()
-        
-        // Attempt resurrection from Bundle (warm) or disk (cold)
-        val resurrectStart = System.nanoTime()
-        var resurrectSource = "none"
-        
-        if (savedInstanceState != null) {
-            val bundleData = savedInstanceState.getByteArray("lattice")
-            if (bundleData != null && bundleData.size == 96) {
-                System.arraycopy(bundleData, 0, stateMachine.current.data, 0, 96)
-                resurrectSource = "bundle"
-            }
-        }
-        
-        // Fallback to disk cryogenics
-        if (resurrectSource == "none") {
-            val cryoFile = File(filesDir, "lattice_cryo.bin")
-            if (stateMachine.current.resurrect(cryoFile)) {
-                resurrectSource = "disk"
-            }
-        }
-        
-        val resurrectTime = (System.nanoTime() - resurrectStart) / 1_000_000.0 // ms
-        val totalColdTime = (System.nanoTime() - coldStartTime) / 1_000_000.0 // ms
-        
-        Log.i("L∞M∆N", "Resurrection: source=$resurrectSource, time=${String.format("%.3f", resurrectTime)}ms, total=${String.format("%.3f", totalColdTime)}ms")
-        resurrectionLog.append("Resurrect: $resurrectSource, ${String.format("%.3f", resurrectTime)}ms\n")
-        
         setContent {
-            LoomApp(
-                stateMachine = stateMachine,
-                resurrectionLog = resurrectionLog.toString()
-            )
+            LoomApp()
         }
-    }
-    
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        val cryoStart = System.nanoTime()
-        outState.putByteArray("lattice", stateMachine.current.data.clone())
-        
-        // Also cryogenize to disk
-        val cryoFile = File(filesDir, "lattice_cryo.bin")
-        stateMachine.current.cryogenize(cryoFile)
-        
-        val cryoTime = (System.nanoTime() - cryoStart) / 1_000_000.0
-        Log.i("L∞M∆N", "Cryogenize: time=${String.format("%.3f", cryoTime)}ms")
-    }
-    
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        // Already handled in onCreate
     }
 }
 
 // ============================================
-// 96-BYTE LATTICE STATE (packed) with Cryogenize
+// 96-BYTE LATTICE STATE (packed) - BASELINE
+// No persistence. No resurrection. RAM only.
+// This is the ghost. Let it haunt.
 // ============================================
 class LatticeState {
     val data = ByteArray(96)
@@ -108,29 +47,6 @@ class LatticeState {
     
     fun getHarmonic(i: Int): Int = intFrom(64 + i * 4)
     fun setHarmonic(i: Int, v: Int) = intTo(64 + i * 4, v)
-    
-    // Cryogenize to disk (SD card persistence)
-    fun cryogenize(file: File): Boolean {
-        return try {
-            FileOutputStream(file).use { it.write(data) }
-            true
-        } catch (e: Exception) {
-            Log.e("LatticeState", "Cryogenize failed: ${e.message}")
-            false
-        }
-    }
-    
-    // Resurrect from disk
-    fun resurrect(file: File): Boolean {
-        return try {
-            if (!file.exists()) return false
-            FileInputStream(file).use { it.read(data) }
-            true
-        } catch (e: Exception) {
-            Log.e("LatticeState", "Resurrect failed: ${e.message}")
-            false
-        }
-    }
     
     private fun longFrom(o: Int): Long {
         var r = 0L
@@ -187,56 +103,21 @@ class StateMachine {
 }
 
 // ============================================
-// MAIN APP with Choreographer frame sync
+// MAIN APP - BASELINE
+// Simple loop. No frame sync. No metrics.
+// Let it die honestly.
 // ============================================
 @Composable
-fun LoomApp(stateMachine: StateMachine, resurrectionLog: String) {
+fun LoomApp() {
+    val stateMachine = remember { StateMachine() }
     var state by remember { mutableStateOf(stateMachine.current) }
     var isRunning by remember { mutableStateOf(true) }
-    var fps by remember { mutableStateOf(0) }
-    var jankyFrames by remember { mutableStateOf(0) }
-    var totalFrames by remember { mutableStateOf(0) }
     
-    // Choreographer-based frame loop (proper 60 FPS sync)
-    val frameCallback = remember {
-        object : Choreographer.FrameCallback {
-            var lastFrameTime = 0L
-            
-            override fun doFrame(frameTimeNanos: Long) {
-                if (!isRunning) return
-                
-                // Calculate frame timing
-                if (lastFrameTime != 0L) {
-                    val frameDelta = (frameTimeNanos - lastFrameTime) / 1_000_000.0 // ms
-                    val expectedFrame = 16.67 // 60 FPS
-                    
-                    totalFrames++
-                    if (frameDelta > expectedFrame * 1.5) {
-                        jankyFrames++
-                    }
-                    
-                    // Update FPS every 30 frames
-                    if (totalFrames % 30 == 0) {
-                        fps = (1000.0 / frameDelta).toInt()
-                    }
-                }
-                lastFrameTime = frameTimeNanos
-                
-                // Step the state machine
-                state = stateMachine.step()
-                
-                // Schedule next frame
-                Choreographer.getInstance().postFrameCallback(this)
-            }
-        }
-    }
-    
-    DisposableEffect(isRunning) {
-        if (isRunning) {
-            Choreographer.getInstance().postFrameCallback(frameCallback)
-        }
-        onDispose {
-            Choreographer.getInstance().removeFrameCallback(frameCallback)
+    // Animation loop - coarse 20 FPS
+    LaunchedEffect(isRunning) {
+        while (isRunning) {
+            state = stateMachine.step()
+            delay(50) // 20 FPS for visibility
         }
     }
     
@@ -268,38 +149,25 @@ fun LoomApp(stateMachine: StateMachine, resurrectionLog: String) {
                     color = Color(0xFFFFD700)
                 )
                 Text(
-                    "φ⁶ Edition | A03s Stress Test",
+                    "φ⁶ Edition | ${state.data.size} bytes | BASELINE",
                     fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.6)
                 )
-                if (resurrectionLog.isNotEmpty()) {
-                    Text(
-                        resurrectionLog.trim(),
-                        fontSize = 10.sp,
-                        color = Color(0xFF00FF00),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                Text(
+                    "NO PERSISTENCE - TESTING GHOST",
+                    fontSize = 10.sp,
+                    color = Color(0xFFFF6B35)
+                )
             }
             
-            // Performance metrics
+            // Metrics
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 MetricCard("ENERGY", "%.2f".format(state.energy))
-                MetricCard("FPS", fps.toString())
-                MetricCard("JANK", "$jankyFrames/$totalFrames")
-            }
-            
-            // State metrics
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                MetricCard("κ", "%.3f".format(1.0 - (jankyFrames.toDouble() / max(totalFrames, 1))))
                 MetricCard("TIME", "${state.timestamp % 10000}")
-                MetricCard("H0", state.getHarmonic(0).toString())
+                MetricCard("κ", "?")
             }
             
             // Controls
@@ -316,7 +184,6 @@ fun LoomApp(stateMachine: StateMachine, resurrectionLog: String) {
             }
         }
     }
-}
 }
 
 @Composable
