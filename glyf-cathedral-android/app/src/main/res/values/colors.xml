@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary colors -->
+    <color name="gold">#FFD700</color>
+    <color name="gold_light">#FFE066</color>
+    <color name="gold_dark">#B08D00</color>
+    
+    <!-- Secondary colors -->
+    <color name="amber">#FF6B35</color>
+    <color name="amber_light">#FF9A75</color>
+    <color name="rose">#FF006E</color>
+    
+    <!-- Background colors -->
+    <color name="deep_space">#050508</color>
+    <color name="void_dark">#0A0A0F</color>
+    <color name="void_light">#1A1A2E</color>
+    
+    <!-- Text colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0C0</color>
+    <color name="text_tertiary">#707080</color>
+    
+    <!-- Status colors -->
+    <color name="superconducting">#00FF00</color>
+    <color name="coherent">#FFD700</color>
+    <color name="building">#FF6B35</color>
+</resources>

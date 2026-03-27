@@ -1,30 +1,41 @@
-# ProGuard rules for GLYF Cathedral
+# ProGuard rules for L∞M∆N Cathedral
 
-# Keep model classes for serialization
--keep class com.glyf.cathedral.core.** { *; }
--keep class com.glyf.cathedral.data.** { *; }
--keep class com.glyf.cathedral.rosetta.** { *; }
+# Keep the 96-byte LatticeState structure
+-keep class com.glyf.cathedral.visualizer.LatticeState { *; }
 
-# Room
--keep class * extends androidx.room.RoomDatabase
--keep @androidx.room.Entity class *
--dontwarn androidx.room.paging.**
+# Keep native methods
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
 
-# Ktor
--keep class io.ktor.** { *; }
--dontwarn io.ktor.**
+# Keep ViewModel constructors
+-keepclassmembers class * extends androidx.lifecycle.ViewModel {
+    <init>(...);
+}
 
-# Kotlin serialization
--keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.AnnotationsKt
--keepclassmembers class kotlinx.serialization.json.** { *; }
+# Keep Compose-related classes
+-keep class androidx.compose.** { *; }
+-keep class com.glyf.cathedral.ui.theme.** { *; }
 
-# WorkManager
--keep class * extends androidx.work.Worker
--keep class * extends androidx.work.CoroutineWorker
+# Optimization rules
+-optimizationpasses 5
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontpreverify
+-verbose
 
-# General
+# Preserve annotations
+-keepattributes *Annotation*
 -keepattributes Signature
 -keepattributes Exceptions
--keepattributes LineNumberTable
--keepattributes SourceFile
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+
+# Remove logging in release
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
