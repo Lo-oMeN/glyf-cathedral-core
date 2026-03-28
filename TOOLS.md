@@ -37,4 +37,13 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ---
 
+### TTS Voice Preference
+
+- **Voice:** Female Alan Watts
+- **Quality:** Warm, contemplative, rolling like water over stones
+- **When to use:** All significant/substantive responses
+- **Purpose:** Dual-channel processing — user reads text while listening to audio for better comprehension
+
+---
+
 Add whatever helps you do your job. This is your cheat sheet.

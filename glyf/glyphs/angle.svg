@@ -1,0 +1,9 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <title>GLYF Angle</title>
+  <path d="M 15 75 L 50 75 L 72 35" 
+        fill="none" 
+        stroke="#1a1a1a" 
+        stroke-width="8"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>
