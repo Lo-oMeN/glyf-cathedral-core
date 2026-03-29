@@ -2,7 +2,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
-#include <stdlib>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -184,9 +184,9 @@ static bool dfs_find_cycles(GaugeNode128* nodes, uint32_t num_nodes,
 }
 
 bool holonomy_verify_graph(GaugeNode128* nodes, uint32_t num_nodes) {
-    bool* visited = calloc(num_nodes, sizeof(bool));
-    bool* rec_stack = calloc(num_nodes, sizeof(bool));
-    uint32_t* path = malloc(num_nodes * sizeof(uint32_t));
+    bool* visited = (bool*)calloc(num_nodes, sizeof(bool));
+    bool* rec_stack = (bool*)calloc(num_nodes, sizeof(bool));
+    uint32_t* path = (uint32_t*)malloc(num_nodes * sizeof(uint32_t));
     uint32_t path_len = 0;
     
     bool valid = true;
@@ -264,7 +264,7 @@ GaugeNode128* gauge_graph_read(const char* filename, uint32_t* num_nodes) {
     *num_nodes = header.num_nodes;
     
     /* Allocate and read nodes */
-    GaugeNode128* nodes = malloc(header.num_nodes * sizeof(GaugeNode128));
+    GaugeNode128* nodes = (GaugeNode128*)malloc(header.num_nodes * sizeof(GaugeNode128));
     if (!nodes) {
         fclose(fp);
         return NULL;

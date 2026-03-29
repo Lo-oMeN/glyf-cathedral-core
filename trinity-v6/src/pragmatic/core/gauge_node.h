@@ -58,7 +58,13 @@ typedef struct __attribute__((packed, aligned(128))) {
 } GaugeNode128;
 
 /* Compile-time size check */
-static_assert(sizeof(GaugeNode128) == 128, "GaugeNode128 must be exactly 128 bytes");
+#if defined(__cplusplus) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L)
+    #if defined(__cplusplus)
+        static_assert(sizeof(GaugeNode128) == 128, "GaugeNode128 must be exactly 128 bytes");
+    #else
+        _Static_assert(sizeof(GaugeNode128) == 128, "GaugeNode128 must be exactly 128 bytes");
+    #endif
+#endif
 
 /* ============================================================================
  * Core Operations
