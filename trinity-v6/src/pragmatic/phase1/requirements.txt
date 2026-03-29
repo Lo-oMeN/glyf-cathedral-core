@@ -1,0 +1,14 @@
+# Phase 1: Geometric Tokenizer Dependencies
+
+# Core
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# Vector search
+faiss-cpu>=1.7.4
+
+# Graph analysis (for testing)
+networkx>=3.0
+
+# Optional: GPU support for FAISS
+# faiss-gpu>=1.7.4  # Uncomment if CUDA available
