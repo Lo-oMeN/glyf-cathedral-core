@@ -1,191 +1,235 @@
 """
-embedding_svd.py - SVD-based geometric embedding module
+embedding_svd.py - SVD-based coordinate embedding
 
-Builds co-occurrence matrices from glyph token sequences and applies
-Truncated SVD to generate 3D embeddings normalized to the unit sphere.
+Builds co-occurrence matrix from text corpus and applies SVD to extract
+3D coordinates for each glyph type. Normalizes to unit sphere.
 """
 import numpy as np
-from sklearn.decomposition import TruncatedSVD
-from typing import List, Optional
-import hashlib
+from typing import List, Dict, Tuple, Optional
+from collections import defaultdict
+import pickle
 import os
 
-# Glyph vocabulary size (0-6)
-NUM_GLYPH_TYPES = 7
+# Glyph vocabulary size (7 types: VOID, DOT, CURVE, LINE, ANGLE, SIBILANT, RESERVED)
+VOCAB_SIZE = 7
 
-def build_cooccurrence(tokens: List[int], window: int = 5) -> np.ndarray:
+def build_cooccurrence_matrix(
+    token_sequences: List[List[int]], 
+    window_size: int = 5
+) -> np.ndarray:
     """
-    Build [7, 7] co-occurrence matrix for 7 glyph types.
-    
-    Counts how often each glyph type appears within a context window
-    of every other glyph type.
+    Build symmetric co-occurrence matrix from token sequences.
     
     Args:
-        tokens: List of integer glyph type values (0-6)
-        window: Context window size (default: 5)
+        token_sequences: List of token integer sequences
+        window_size: Context window radius (tokens within this distance count)
         
     Returns:
-        7x7 co-occurrence matrix
+        VxV co-occurrence matrix where V = VOCAB_SIZE
     """
-    matrix = np.zeros((NUM_GLYPH_TYPES, NUM_GLYPH_TYPES), dtype=np.float64)
+    cooccur = np.zeros((VOCAB_SIZE, VOCAB_SIZE), dtype=np.float64)
     
-    for i, t in enumerate(tokens):
-        # Look at context window around position i
-        start = max(0, i - window)
-        end = min(len(tokens), i + window + 1)  # +1 for inclusive range
-        
-        for j in range(start, end):
-            if i != j:  # Don't count self-co-occurrence
-                context_token = tokens[j]
-                matrix[t][context_token] += 1.0
+    for tokens in token_sequences:
+        n = len(tokens)
+        for i, token_i in enumerate(tokens):
+            # Ensure token is within vocab
+            if token_i >= VOCAB_SIZE:
+                continue
+                
+            # Look at context window
+            left = max(0, i - window_size)
+            right = min(n, i + window_size + 1)
+            
+            for j in range(left, right):
+                if i == j:
+                    continue
+                token_j = tokens[j]
+                if token_j >= VOCAB_SIZE:
+                    continue
+                
+                # Distance-weighted co-occurrence (closer = stronger)
+                distance = abs(i - j)
+                weight = 1.0 / distance
+                
+                cooccur[token_i, token_j] += weight
     
-    return matrix
+    # Symmetrize
+    cooccur = (cooccur + cooccur.T) / 2.0
+    
+    return cooccur
 
-
-def svd_embed(tokens: List[int], 
-              n_components: int = 3,
-              window: int = 5,
-              cache_dir: Optional[str] = None) -> np.ndarray:
+def apply_svd(
+    matrix: np.ndarray, 
+    n_components: int = 3
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Return [N, 3] coordinate array for each token using SVD embeddings.
-    
-    Builds a co-occurrence matrix from the token sequence, applies Truncated SVD
-    to reduce to n_components dimensions, then normalizes each token's
-    coordinates to the unit sphere.
+    Apply SVD decomposition to co-occurrence matrix.
     
     Args:
-        tokens: List of integer glyph type values (0-6)
-        n_components: Number of dimensions for embedding (default: 3)
-        window: Context window size for co-occurrence (default: 5)
-        cache_dir: Optional directory to cache embeddings as .npy files
+        matrix: VxV co-occurrence matrix
+        n_components: Number of dimensions to extract
         
     Returns:
-        Array of shape [len(tokens), n_components] with normalized coordinates
+        (U, S, Vt): SVD decomposition matrices
     """
-    # Check cache first if provided
-    if cache_dir:
-        os.makedirs(cache_dir, exist_ok=True)
-        # Create cache key from tokens and parameters
-        cache_key = hashlib.md5(
-            f"{str(tokens)}:{window}:{n_components}".encode()
-        ).hexdigest()
-        cache_path = os.path.join(cache_dir, f"svd_embed_{cache_key}.npy")
+    # Use numpy's SVD
+    U, S, Vt = np.linalg.svd(matrix, full_matrices=False)
+    
+    # Keep only top n_components
+    U = U[:, :n_components]
+    S = S[:n_components]
+    Vt = Vt[:n_components, :]
+    
+    return U, S, Vt
+
+def normalize_to_sphere(vectors: np.ndarray) -> np.ndarray:
+    """
+    Normalize vectors to unit sphere (L2 norm = 1).
+    
+    Args:
+        vectors: NxD array of vectors
         
-        if os.path.exists(cache_path):
-            coords = np.load(cache_path)
-            return coords
-    
-    # Build co-occurrence matrix
-    cooccurrence = build_cooccurrence(tokens, window=window)
-    
-    # Handle edge case: empty co-occurrence (no context)
-    if cooccurrence.sum() == 0:
-        # Return zero coordinates for all tokens
-        coords = np.zeros((len(tokens), n_components))
-        if cache_dir:
-            np.save(cache_path, coords)
-        return coords
-    
-    # Apply Truncated SVD
-    # Note: We fit on the glyph types (rows), not the tokens directly
-    svd = TruncatedSVD(n_components=min(n_components, NUM_GLYPH_TYPES - 1))
-    glyph_embeddings = svd.fit_transform(cooccurrence)
-    
-    # Map each token to its glyph type's embedding
-    coords = np.array([glyph_embeddings[t] for t in tokens])
-    
-    # Normalize to unit sphere (each row has L2 norm = 1)
-    norms = np.linalg.norm(coords, axis=1, keepdims=True)
+    Returns:
+        Normalized NxD array
+    """
+    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
     # Avoid division by zero
-    norms[norms == 0] = 1.0
-    coords = coords / norms
+    norms = np.where(norms == 0, 1, norms)
+    return vectors / norms
+
+def compute_embeddings(
+    token_sequences: List[List[int]],
+    window_size: int = 5,
+    n_dimensions: int = 3
+) -> np.ndarray:
+    """
+    Compute 3D SVD embeddings for glyph vocabulary.
     
-    # Cache result if directory provided
-    if cache_dir:
-        np.save(cache_path, coords)
+    Args:
+        token_sequences: List of token integer sequences
+        window_size: Context window for co-occurrence
+        n_dimensions: Number of dimensions to extract (default 3)
+        
+    Returns:
+        VxD array of normalized 3D coordinates (V = vocab size, D = dimensions)
+    """
+    # Build co-occurrence matrix
+    cooccur = build_cooccurrence_matrix(token_sequences, window_size)
+    
+    # Apply SVD
+    U, S, Vt = apply_svd(cooccur, n_components=n_dimensions)
+    
+    # Use U matrix rows as coordinates (scaled by singular values)
+    coords = U * np.sqrt(S)
+    
+    # Normalize to unit sphere
+    coords = normalize_to_sphere(coords)
+    
+    return coords
+
+def get_default_embeddings() -> np.ndarray:
+    """
+    Generate default geometric embeddings when no corpus is available.
+    
+    Places glyphs on vertices of a tetrahedron-like structure:
+    - VOID: origin (special, no direction)
+    - DOT: top vertex
+    - CURVE: circular arc point
+    - LINE: linear extension
+    - ANGLE: corner point
+    - SIBILANT: wave point
+    - RESERVED: future position
+    """
+    coords = np.array([
+        [0.0, 0.0, 0.0],      # VOID - center/null
+        [0.0, 0.0, 1.0],      # DOT - zenith point
+        [0.8, 0.0, 0.6],      # CURVE - x-arc
+        [0.0, 0.9, 0.4],      # LINE - y-extension  
+        [-0.7, 0.7, 0.2],     # ANGLE - corner
+        [0.6, -0.7, 0.4],     # SIBILANT - wave
+        [-0.5, -0.5, 0.7],    # RESERVED - future
+    ], dtype=np.float32)
+    
+    # Normalize (except VOID which stays at origin)
+    for i in range(1, VOCAB_SIZE):
+        norm = np.linalg.norm(coords[i])
+        if norm > 0:
+            coords[i] = coords[i] / norm
+    
+    return coords
+
+def save_embeddings(embeddings: np.ndarray, filepath: str):
+    """
+    Save embeddings to .npy file.
+    
+    Args:
+        embeddings: VxD array of coordinates
+        filepath: Output file path
+    """
+    np.save(filepath, embeddings)
+
+def load_embeddings(filepath: str) -> Optional[np.ndarray]:
+    """
+    Load embeddings from .npy file.
+    
+    Args:
+        filepath: Path to .npy file
+        
+    Returns:
+        Embeddings array or None if file doesn't exist
+    """
+    if not os.path.exists(filepath):
+        return None
+    return np.load(filepath)
+
+def embed_sequence(
+    token_sequence: List[int],
+    embeddings: np.ndarray
+) -> np.ndarray:
+    """
+    Map a token sequence to 3D coordinates.
+    
+    Args:
+        token_sequence: List of token integers
+        embeddings: Vx3 coordinate array
+        
+    Returns:
+        Nx3 array of coordinates for each token
+    """
+    coords = np.zeros((len(token_sequence), embeddings.shape[1]), dtype=np.float32)
+    
+    for i, token in enumerate(token_sequence):
+        if token < embeddings.shape[0]:
+            coords[i] = embeddings[token]
+        else:
+            # Unknown token - use VOID position with small noise
+            coords[i] = embeddings[0] + np.random.normal(0, 0.01, embeddings.shape[1])
     
     return coords
 
 
-def batch_svd_embed(token_sequences: List[List[int]],
-                    n_components: int = 3,
-                    window: int = 5,
-                    cache_dir: Optional[str] = None) -> List[np.ndarray]:
-    """
-    Process multiple token sequences with SVD embedding.
-    
-    Args:
-        token_sequences: List of token sequences
-        n_components: Number of dimensions for embedding (default: 3)
-        window: Context window size (default: 5)
-        cache_dir: Optional directory to cache embeddings
-        
-    Returns:
-        List of embedding arrays, one per sequence
-    """
-    return [
-        svd_embed(tokens, n_components=n_components, window=window, cache_dir=cache_dir)
-        for tokens in token_sequences
-    ]
-
-
-def clear_embedding_cache(cache_dir: str) -> int:
-    """
-    Clear all cached embedding files.
-    
-    Args:
-        cache_dir: Directory containing cached .npy files
-        
-    Returns:
-        Number of files removed
-    """
-    if not os.path.exists(cache_dir):
-        return 0
-    
-    count = 0
-    for filename in os.listdir(cache_dir):
-        if filename.startswith("svd_embed_") and filename.endswith(".npy"):
-            os.remove(os.path.join(cache_dir, filename))
-            count += 1
-    
-    return count
-
-
 if __name__ == "__main__":
-    # Test with the tokenizer
-    from glyph_tokenizer import tokenize_to_integers
+    # Test with sample corpus
+    sample_sequences = [
+        [4, 2, 3, 0, 4, 2, 3, 3, 0, 4, 3, 4, 3, 0, 4, 2, 3],  # "The quick brown fox"
+        [4, 2, 0, 3, 2, 3, 2, 0, 4, 3, 2, 3],                 # "To be or not"
+        [3, 2, 3, 2, 0, 4, 3, 2, 0, 4, 3, 3],                 # "line of code"
+    ]
     
-    text = "The quick brown fox"
-    tokens = tokenize_to_integers(text)
+    print("Computing SVD embeddings...")
+    embeddings = compute_embeddings(sample_sequences, window_size=2, n_dimensions=3)
     
-    print(f"Input text: {text!r}")
-    print(f"Tokens: {tokens}")
+    print(f"Embedding shape: {embeddings.shape}")
+    print("\nGlyph embeddings:")
+    glyph_names = ['VOID', 'DOT', 'CURVE', 'LINE', 'ANGLE', 'SIBILANT', 'RESERVED']
     
-    # Get embeddings
-    coords = svd_embed(tokens, n_components=3, window=5)
+    for i, name in enumerate(glyph_names):
+        coords = embeddings[i]
+        norm = np.linalg.norm(coords)
+        print(f"  {name:10s}: [{coords[0]:7.4f}, {coords[1]:7.4f}, {coords[2]:7.4f}]  |v|={norm:.4f}")
     
-    print(f"\nEmbedding shape: {coords.shape}")
-    print(f"Expected shape: ({len(tokens)}, 3)")
-    
-    # Verify unit sphere normalization
-    norms = np.linalg.norm(coords, axis=1)
-    print(f"\nNorms (should all be ~1.0): {norms}")
-    print(f"All close to 1.0: {np.allclose(norms, 1.0)}")
-    
-    # Show sample coordinates
-    print(f"\nFirst 5 token embeddings:")
-    for i in range(min(5, len(tokens))):
-        print(f"  Token {tokens[i]}: [{coords[i][0]:+.4f}, {coords[i][1]:+.4f}, {coords[i][2]:+.4f}]")
-    
-    # Test caching
-    import tempfile
-    with tempfile.TemporaryDirectory() as tmpdir:
-        print(f"\nTesting cache in: {tmpdir}")
-        coords_cached = svd_embed(tokens, n_components=3, window=5, cache_dir=tmpdir)
-        print(f"Cached embedding matches: {np.allclose(coords, coords_cached)}")
-        
-        # Load from cache
-        coords_loaded = svd_embed(tokens, n_components=3, window=5, cache_dir=tmpdir)
-        print(f"Loaded from cache matches: {np.allclose(coords, coords_loaded)}")
-    
-    print("\n✓ All tests passed!")
+    # Test sequence embedding
+    test_tokens = [4, 2, 3, 0, 4, 2]  # "The qu"
+    seq_coords = embed_sequence(test_tokens, embeddings)
+    print(f"\nSequence embedding shape: {seq_coords.shape}")
+    print(f"Sample coordinates:\n{seq_coords}")
