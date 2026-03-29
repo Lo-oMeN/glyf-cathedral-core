@@ -20,8 +20,8 @@ class GlyfPrimitive(IntEnum):
 
 # Character classification sets
 VOWELS = set('aeiouAEIOU')
-HARD_CONSONANTS = set('ktpdbgKTPDBG')
-SOFT_CONSONANTS = set('lmnrsfLMNRSF')
+HARD_CONSONANTS = set('ktpdbgqjkKTPDBGQJK')
+SOFT_CONSONANTS = set('lmnrsfwyLMNRSFWY')
 SIBILANTS = set('hzxHZX')
 PUNCTUATION_SPACE = set(' \t\n\r\f\v!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~')
 

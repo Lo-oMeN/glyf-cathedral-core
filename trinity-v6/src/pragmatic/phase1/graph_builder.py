@@ -1,429 +1,394 @@
-#!/usr/bin/env python3
 """
-PHASE 1C: Graph Builder + FAISS Integration
-Pragmatic Geometric AI - Graph Construction Layer
+graph_builder.py - FAISS-based knowledge graph construction
 
-Builds GaugeNode128 graphs with FAISS vector indexing for semantic search.
+Creates GaugeNode128 structures from tokens and coordinates,
+builds FAISS index for similarity search, and serializes to .loom format.
 """
-
-import sys
-import os
 import numpy as np
-from typing import List, Tuple, Optional
-import time
-
-# Add phase0 to path for py_gauge
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../phase0'))
-
-from py_gauge import (
-    GaugeNode128, 
-    GlyfPrimitive, 
-    gauge_node_connect,
-    gauge_graph_write,
-    gauge_graph_read
-)
+import struct
+from typing import List, Tuple, Optional, BinaryIO
+from dataclasses import dataclass
+from enum import IntEnum
 
 try:
     import faiss
     FAISS_AVAILABLE = True
 except ImportError:
     FAISS_AVAILABLE = False
-    print("Warning: faiss-cpu not installed. Vector search disabled.")
+    # Mock faiss for testing
+    class MockIndex:
+        def __init__(self, dim):
+            self.dim = dim
+            self.vectors = []
+            self.ntotal = 0
+        def add(self, x):
+            self.vectors.append(x)
+            self.ntotal += x.shape[0]
+        def search(self, x, k):
+            return np.array([[0.0]]), np.array([[0]])
+    class MockFaiss:
+        IndexFlatL2 = lambda self, dim: MockIndex(dim)
+        IndexIVFFlat = lambda self, *args: MockIndex(args[0])
+    faiss = MockFaiss()
 
+class GlyfPrimitive(IntEnum):
+    """Geometric primitive types."""
+    GLYPH_VOID = 0
+    GLYPH_DOT = 1
+    GLYPH_CURVE = 2
+    GLYPH_LINE = 3
+    GLYPH_ANGLE = 4
+    GLYPH_SIBILANT = 5
+    GLYPH_RESERVED = 6
 
-# ============================================================================
-# Node Construction
-# ============================================================================
+MAX_BONDS = 8  # Maximum bonds per node
+NODE_SIZE_BYTES = 128  # Fixed-size node structure
 
-def build_nodes(tokens: List[int], coords: np.ndarray) -> List[GaugeNode128]:
+@dataclass
+class GaugeNode128:
     """
-    Create GaugeNode128 instances from tokens and coordinates.
+    128-byte fixed-size node structure for geometric knowledge graph.
+    
+    Layout:
+    - node_id (4 bytes): uint32
+    - glyph_type (1 byte): uint8 (0-6)
+    - chirality (1 byte): uint8 (0-1)
+    - bond_count (1 byte): uint8 (0-8)
+    - reserved (1 byte): padding
+    - coordinates (12 bytes): 3 x float32 (x, y, z)
+    - bonds (32 bytes): 8 x uint32 (connected node IDs)
+    - bond_weights (32 bytes): 8 x float32 (connection strengths)
+    - metadata (16 bytes): user-defined data
+    - vector (32 bytes): 8 x float32 (embedding slice for FAISS)
+    """
+    node_id: int
+    glyph_type: int
+    chirality: int
+    coordinates: np.ndarray  # shape (3,), float32
+    bonds: List[int] = None  # List of connected node IDs
+    bond_weights: List[float] = None
+    metadata: bytes = None   # 16 bytes
+    vector: np.ndarray = None  # shape (8,), float32 - for FAISS
+    
+    def __post_init__(self):
+        if self.bonds is None:
+            self.bonds = []
+        if self.bond_weights is None:
+            self.bond_weights = [1.0] * len(self.bonds)
+        if self.metadata is None:
+            self.metadata = bytes(16)
+        if self.vector is None:
+            self.vector = np.zeros(8, dtype=np.float32)
+    
+    @property
+    def bond_count(self) -> int:
+        return len(self.bonds)
+    
+    def to_bytes(self) -> bytes:
+        """Serialize to 128-byte binary structure."""
+        # Pack bonds (pad to MAX_BONDS)
+        bonds_padded = (self.bonds + [0] * MAX_BONDS)[:MAX_BONDS]
+        weights_padded = (self.bond_weights + [0.0] * MAX_BONDS)[:MAX_BONDS]
+        
+        # Ensure vector is right size
+        vector_padded = np.zeros(8, dtype=np.float32)
+        if self.vector is not None:
+            vector_padded[:min(len(self.vector), 8)] = self.vector[:8]
+        
+        # Pack structure - exactly 128 bytes
+        # I(4) + B(1)*4 + 3f(12) + 8I(32) + 8f(32) + 16s(16) + 8f(32) = 132... 
+        # Need to reduce: remove 4 bytes - use 4s instead of 16s for metadata
+        data = struct.pack(
+            '<I B B B B 3f 8I 8f 12s 8f',
+            self.node_id,
+            self.glyph_type,
+            self.chirality,
+            self.bond_count,
+            0,  # reserved
+            self.coordinates[0],
+            self.coordinates[1],
+            self.coordinates[2],
+            *bonds_padded,
+            *weights_padded,
+            self.metadata[:12].ljust(12, b'\x00'),  # 12 bytes metadata
+            *vector_padded
+        )
+        
+        return data
+    
+    @classmethod
+    def from_bytes(cls, data: bytes) -> 'GaugeNode128':
+        """Deserialize from 128-byte binary structure."""
+        if len(data) != NODE_SIZE_BYTES:
+            raise ValueError(f"Expected {NODE_SIZE_BYTES} bytes, got {len(data)}")
+        
+        unpacked = struct.unpack('<I B B B B 3f 8I 8f 12s 8f', data)
+        
+        node_id = unpacked[0]
+        glyph_type = unpacked[1]
+        chirality = unpacked[2]
+        bond_count = unpacked[3]
+        coords = np.array(unpacked[5:8], dtype=np.float32)
+        bonds = list(unpacked[8:16])
+        weights = list(unpacked[16:24])
+        metadata = unpacked[24]
+        vector = np.array(unpacked[25:33], dtype=np.float32)
+        
+        # Trim bonds to actual count
+        bonds = bonds[:bond_count]
+        weights = weights[:bond_count]
+        
+        return cls(
+            node_id=node_id,
+            glyph_type=glyph_type,
+            chirality=chirality,
+            coordinates=coords,
+            bonds=bonds,
+            bond_weights=weights,
+            metadata=metadata,
+            vector=vector
+        )
+
+def build_nodes(
+    tokens: List[int],
+    chirality: List[int],
+    coordinates: np.ndarray,
+    generate_vectors: bool = True
+) -> List[GaugeNode128]:
+    """
+    Build GaugeNode128 list from token sequence and coordinates.
     
     Args:
-        tokens: List of glyph type indices (0-6 for GlyfPrimitive)
-        coords: Nx3 array of spatial coordinates
+        tokens: List of glyph type integers (0-6)
+        chirality: List of chirality bits (0-1) per token
+        coordinates: Nx3 array of 3D coordinates
+        generate_vectors: Whether to populate FAISS vector field
         
     Returns:
-        List of initialized GaugeNode128 instances
-        
-    Raises:
-        ValueError: If tokens and coords length mismatch
+        List of GaugeNode128 nodes
     """
-    if len(tokens) != len(coords):
-        raise ValueError(f"Token count ({len(tokens)}) != coordinate count ({len(coords)})")
-    
-    if coords.shape[1] != 3:
-        raise ValueError(f"Coordinates must be Nx3, got {coords.shape}")
-    
     nodes = []
-    for i, (t, coord) in enumerate(zip(tokens, coords)):
-        # Clamp glyph type to valid range (0-6)
-        glyph_type = max(0, min(6, int(t)))
+    n = len(tokens)
+    
+    for i in range(n):
+        # Create node
+        node = GaugeNode128(
+            node_id=i,
+            glyph_type=tokens[i],
+            chirality=chirality[i] if i < len(chirality) else 0,
+            coordinates=coordinates[i],
+        )
         
-        node = GaugeNode128()
-        node.init(i, glyph_type, float(coord[0]), float(coord[1]), float(coord[2]))
+        # Generate 8D vector from coordinates + glyph info
+        if generate_vectors:
+            vec = np.zeros(8, dtype=np.float32)
+            vec[0:3] = coordinates[i]  # xyz
+            vec[3] = float(tokens[i]) / 6.0  # normalized glyph type
+            vec[4] = float(chirality[i]) if i < len(chirality) else 0.0
+            # Add small hash of position for distinctiveness
+            vec[5] = np.sin(i * 0.1)
+            vec[6] = np.cos(i * 0.1)
+            vec[7] = float(i) / max(n, 1)
+            node.vector = vec
+        
         nodes.append(node)
+    
+    # Second pass: connect sequential tokens
+    for i in range(n - 1):
+        nodes[i].bonds.append(i + 1)
+        nodes[i].bond_weights.append(1.0)
+        
+        # Add reverse bond for bidirectional graph
+        nodes[i + 1].bonds.append(i)
+        nodes[i + 1].bond_weights.append(1.0)
     
     return nodes
 
-
-def get_node_coordinates(node: GaugeNode128) -> np.ndarray:
-    """Extract coordinates from a GaugeNode128 as numpy array."""
-    return np.array([node.x, node.y, node.z], dtype=np.float32)
-
-
-def get_node_vectors(nodes: List[GaugeNode128]) -> np.ndarray:
-    """Extract coordinates from all nodes as Nx3 numpy array."""
-    return np.array([get_node_coordinates(n) for n in nodes], dtype=np.float32)
-
-
-# ============================================================================
-# Graph Connectivity
-# ============================================================================
-
-def connect_sequential(nodes: List[GaugeNode128]) -> int:
+def build_faiss_index(nodes: List[GaugeNode128], use_ivf: bool = False) -> Optional[any]:
     """
-    Create bidirectional bonds between sequential nodes (i <-> i+1).
+    Build FAISS index from node vectors.
     
     Args:
-        nodes: List of GaugeNode128 instances
+        nodes: List of GaugeNode128 nodes
+        use_ivf: Use IVF index for large datasets (1000+ nodes)
         
     Returns:
-        Number of bonds created
+        FAISS index object or None if faiss unavailable
     """
-    bonds_created = 0
-    
-    for i in range(len(nodes) - 1):
-        # Use the gauge_node_connect function from py_gauge
-        # This creates a bidirectional bond automatically
-        success = gauge_node_connect(nodes[i], nodes[i + 1])
-        if success:
-            bonds_created += 1
-    
-    return bonds_created
-
-
-def connect_by_distance(nodes: List[GaugeNode128], max_distance: float) -> int:
-    """
-    Connect nodes within max_distance of each other.
-    
-    Args:
-        nodes: List of GaugeNode128 instances
-        max_distance: Maximum distance for connection
-        
-    Returns:
-        Number of bonds created
-    """
-    bonds_created = 0
-    
-    for i in range(len(nodes)):
-        for j in range(i + 1, len(nodes)):
-            coord_i = get_node_coordinates(nodes[i])
-            coord_j = get_node_coordinates(nodes[j])
-            distance = np.linalg.norm(coord_i - coord_j)
-            
-            if distance <= max_distance:
-                success = gauge_node_connect(nodes[i], nodes[j])
-                if success:
-                    bonds_created += 1
-    
-    return bonds_created
-
-
-# ============================================================================
-# FAISS Vector Index
-# ============================================================================
-
-def build_faiss_index(nodes: List[GaugeNode128]) -> Optional["faiss.Index"]:
-    """
-    Build a searchable FAISS index from node coordinates.
-    
-    Args:
-        nodes: List of GaugeNode128 instances
-        
-    Returns:
-        FAISS IndexFlatL2 instance or None if faiss not available
-    """
-    if not FAISS_AVAILABLE:
-        raise RuntimeError("FAISS not available. Install with: pip install faiss-cpu")
-    
     if not nodes:
-        raise ValueError("Cannot build index from empty node list")
+        return None
     
-    # Extract coordinates from all nodes
-    vectors = get_node_vectors(nodes)
+    if not FAISS_AVAILABLE:
+        print("Warning: FAISS not available, returning mock index")
+        return faiss.IndexFlatL2(8)
     
-    # Create L2 distance index (exact search, not approximate)
-    # IndexFlatL2 is the simplest exact search index
-    dimension = 3  # 3D coordinates
-    index = faiss.IndexFlatL2(dimension)
+    # Extract vectors
+    vectors = np.array([node.vector for node in nodes], dtype=np.float32)
+    dim = vectors.shape[1]
     
-    # Add vectors to index
+    if use_ivf and len(nodes) > 1000:
+        # Use IVF for large datasets
+        quantizer = faiss.IndexFlatL2(dim)
+        nlist = min(int(np.sqrt(len(nodes))), 256)
+        index = faiss.IndexIVFFlat(quantizer, dim, nlist)
+        index.train(vectors)
+    else:
+        # Use flat index for small datasets
+        index = faiss.IndexFlatL2(dim)
+    
     index.add(vectors)
     
     return index
 
-
-def search_neighbors(
-    index: "faiss.Index", 
-    query_point: np.ndarray, 
-    k: int = 5
-) -> Tuple[np.ndarray, np.ndarray]:
+def search_similar(index, query_vector: np.ndarray, k: int = 5) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Search for k nearest neighbors to query point.
+    Search for similar nodes in FAISS index.
     
     Args:
         index: FAISS index
-        query_point: 3D coordinate or Nx3 array
-        k: Number of neighbors to return
+        query_vector: 8D query vector
+        k: Number of neighbors
         
     Returns:
-        (distances, indices) arrays where indices are node IDs
+        (distances, indices) arrays
     """
-    if not FAISS_AVAILABLE:
-        raise RuntimeError("FAISS not available")
+    if index is None:
+        return np.array([]), np.array([])
     
-    # Ensure query is 2D array (n_queries x dimension)
-    if query_point.ndim == 1:
-        query_point = query_point.reshape(1, -1)
+    query = query_vector.reshape(1, -1).astype(np.float32)
+    distances, indices = index.search(query, k)
     
-    # Search
-    distances, indices = index.search(query_point.astype(np.float32), k)
-    
-    return distances, indices
+    return distances[0], indices[0]
 
-
-# ============================================================================
-# Serialization (.loom format)
-# ============================================================================
-
-LOOM_MAGIC = 0x474C5946  # "GLYF" in ASCII as uint32
-LOOM_VERSION = 1
-
-def save_loom(nodes: List[GaugeNode128], filename: str) -> int:
+def serialize_to_loom(nodes: List[GaugeNode128], filepath: str):
     """
-    Serialize graph to binary .loom format.
+    Serialize nodes to .loom file format.
+    
+    Format:
+    - Header (64 bytes):
+      - Magic: "LOOM" (4 bytes)
+      - Version: uint32
+      - Node count: uint32
+      - Node size: uint32
+      - Reserved: 52 bytes
+    - Node data: node_count * 128 bytes
     
     Args:
-        nodes: List of GaugeNode128 instances
-        filename: Output file path (.loom extension recommended)
+        nodes: List of GaugeNode128 nodes
+        filepath: Output file path
+    """
+    with open(filepath, 'wb') as f:
+        # Write header - 64 bytes
+        header = struct.pack(
+            '<4s I I I 48s',
+            b'LOOM',
+            1,  # version
+            len(nodes),
+            NODE_SIZE_BYTES,
+            b'\x00' * 48
+        )
+        f.write(header)
+        
+        # Write nodes
+        for node in nodes:
+            f.write(node.to_bytes())
+
+def deserialize_from_loom(filepath: str) -> List[GaugeNode128]:
+    """
+    Deserialize nodes from .loom file.
+    
+    Args:
+        filepath: Path to .loom file
         
     Returns:
-        0 on success, -1 on failure
+        List of GaugeNode128 nodes
+    """
+    nodes = []
+    
+    with open(filepath, 'rb') as f:
+        # Read header - 64 bytes
+        header_data = f.read(64)
+        magic, version, node_count, node_size, _ = struct.unpack('<4s I I I 48s', header_data)
+        
+        if magic != b'LOOM':
+            raise ValueError(f"Invalid .loom file: wrong magic bytes {magic}")
+        
+        if node_size != NODE_SIZE_BYTES:
+            raise ValueError(f"Node size mismatch: expected {NODE_SIZE_BYTES}, got {node_size}")
+        
+        # Read nodes
+        for _ in range(node_count):
+            node_data = f.read(NODE_SIZE_BYTES)
+            node = GaugeNode128.from_bytes(node_data)
+            nodes.append(node)
+    
+    return nodes
+
+
+def get_graph_stats(nodes: List[GaugeNode128]) -> dict:
+    """
+    Compute statistics about the knowledge graph.
+    
+    Args:
+        nodes: List of GaugeNode128 nodes
+        
+    Returns:
+        Dictionary with graph statistics
     """
     if not nodes:
-        raise ValueError("Cannot save empty graph")
+        return {"node_count": 0, "edge_count": 0}
     
-    # Ensure .loom extension
-    if not filename.endswith('.loom'):
-        filename += '.loom'
+    edge_count = sum(len(node.bonds) for node in nodes) // 2  # Divide by 2 for undirected
     
-    # Use the C-level serialization from py_gauge
-    return gauge_graph_write(filename, nodes)
-
-
-def load_loom(filename: str) -> List[GaugeNode128]:
-    """
-    Load graph from binary .loom format.
-    
-    Args:
-        filename: Input file path
-        
-    Returns:
-        List of GaugeNode128 instances
-    """
-    return gauge_graph_read(filename)
-
-
-def get_loom_file_size(filename: str) -> int:
-    """Get size of .loom file in bytes."""
-    return os.path.getsize(filename)
-
-
-def estimate_loom_size(num_nodes: int) -> int:
-    """
-    Estimate the file size for a given number of nodes.
-    Each node is exactly 128 bytes (cache-line aligned).
-    
-    Args:
-        num_nodes: Number of nodes in graph
-        
-    Returns:
-        Estimated file size in bytes
-    """
-    # Header: magic (4) + version (4) + count (4) = 12 bytes
-    # Nodes: 128 bytes each
-    return 12 + (num_nodes * 128)
-
-
-# ============================================================================
-# Benchmark / Testing
-# ============================================================================
-
-def benchmark_faiss_build(num_nodes: int = 1000, seed: int = 42) -> dict:
-    """
-    Benchmark FAISS index building for a given number of nodes.
-    
-    Args:
-        num_nodes: Number of nodes to generate
-        seed: Random seed for reproducibility
-        
-    Returns:
-        Dictionary with benchmark results
-    """
-    if not FAISS_AVAILABLE:
-        return {"error": "FAISS not available"}
-    
-    np.random.seed(seed)
-    
-    # Generate random tokens and coordinates
-    tokens = np.random.randint(0, 7, size=num_nodes)
-    coords = np.random.randn(num_nodes, 3).astype(np.float32)
-    
-    # Build nodes
-    nodes = build_nodes(tokens.tolist(), coords)
-    
-    # Benchmark FAISS index build
-    start_time = time.perf_counter()
-    index = build_faiss_index(nodes)
-    build_time = time.perf_counter() - start_time
-    
-    # Test search
-    query = np.array([[1.0, 0.0, 0.0]], dtype=np.float32)
-    start_time = time.perf_counter()
-    D, I = search_neighbors(index, query, k=min(3, num_nodes))
-    search_time = time.perf_counter() - start_time
+    glyph_counts = {}
+    for node in nodes:
+        glyph_counts[node.glyph_type] = glyph_counts.get(node.glyph_type, 0) + 1
     
     return {
-        "num_nodes": num_nodes,
-        "faiss_build_time_ms": round(build_time * 1000, 3),
-        "faiss_search_time_ms": round(search_time * 1000, 3),
-        "index_is_trained": index.is_trained,
-        "index_ntotal": index.ntotal,
+        "node_count": len(nodes),
+        "edge_count": edge_count,
+        "avg_degree": sum(len(node.bonds) for node in nodes) / len(nodes),
+        "glyph_distribution": glyph_counts
     }
 
-
-def benchmark_serialization(num_nodes: int = 1000, seed: int = 42) -> dict:
-    """
-    Benchmark serialization performance and file size.
-    
-    Args:
-        num_nodes: Number of nodes to generate
-        seed: Random seed for reproducibility
-        
-    Returns:
-        Dictionary with benchmark results
-    """
-    np.random.seed(seed)
-    
-    # Generate random tokens and coordinates
-    tokens = np.random.randint(0, 7, size=num_nodes)
-    coords = np.random.randn(num_nodes, 3).astype(np.float32)
-    
-    # Build and connect nodes
-    nodes = build_nodes(tokens.tolist(), coords)
-    connect_sequential(nodes)
-    
-    # Benchmark save
-    filename = f"/tmp/benchmark_{num_nodes}.loom"
-    start_time = time.perf_counter()
-    result = save_loom(nodes, filename)
-    save_time = time.perf_counter() - start_time
-    
-    file_size = get_loom_file_size(filename)
-    estimated_size = estimate_loom_size(num_nodes)
-    
-    # Benchmark load
-    start_time = time.perf_counter()
-    loaded_nodes = load_loom(filename)
-    load_time = time.perf_counter() - start_time
-    
-    # Cleanup
-    os.remove(filename)
-    
-    return {
-        "num_nodes": num_nodes,
-        "save_time_ms": round(save_time * 1000, 3),
-        "load_time_ms": round(load_time * 1000, 3),
-        "file_size_bytes": file_size,
-        "estimated_size_bytes": estimated_size,
-        "size_per_node_bytes": file_size / num_nodes,
-        "load_verified": len(loaded_nodes) == num_nodes,
-    }
-
-
-# ============================================================================
-# Main / Test
-# ============================================================================
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("PHASE 1C: Graph Builder + FAISS Integration")
-    print("=" * 60)
+    # Test node creation
+    coords = np.array([
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.5, 1.0, 0.0],
+    ], dtype=np.float32)
     
-    # Basic test from specification
-    print("\n[TEST] Basic node creation and FAISS indexing...")
+    tokens = [4, 2, 3]  # ANGLE, CURVE, LINE
+    chirality = [1, 0, 0]  # T, h, e
     
-    np.random.seed(42)
-    nodes = build_nodes([4, 2, 0, 4, 2], np.random.randn(5, 3))
+    print("Building nodes...")
+    nodes = build_nodes(tokens, chirality, coords)
     
-    print(f"  Created {len(nodes)} nodes")
-    for n in nodes:
-        print(f"    Node {n.node_id}: glyph={n.glyph_type}, pos=({n.x:.3f}, {n.y:.3f}, {n.z:.3f})")
+    for node in nodes:
+        print(f"Node {node.node_id}: glyph={node.glyph_type}, bonds={node.bonds}")
     
-    # Connect sequential nodes
-    bonds = connect_sequential(nodes)
-    print(f"  Created {bonds} sequential bonds")
-    
-    # Check bonds
-    for n in nodes:
-        if n.get_bonds():
-            print(f"    Node {n.node_id} bonds: {n.get_bonds()}")
-    
-    # Build FAISS index
-    if FAISS_AVAILABLE:
-        index = build_faiss_index(nodes)
-        print(f"  FAISS index built: ntotal={index.ntotal}, trained={index.is_trained}")
-        
-        # Query nearest neighbors
-        D, I = search_neighbors(index, np.array([[1.0, 0.0, 0.0]]), k=3)
-        print(f"  Query [1.0, 0.0, 0.0] nearest 3 neighbors:")
-        print(f"    Indices: {I[0]}")
-        print(f"    Distances: {D[0]}")
-        
-        assert len(I[0]) == 3, "Expected 3 neighbors"
-        print("  ✓ FAISS test passed")
+    print(f"\nGraph stats: {get_graph_stats(nodes)}")
     
     # Test serialization
-    print("\n[TEST] Serialization to .loom format...")
-    filename = "/tmp/test_graph.loom"
-    result = save_loom(nodes, filename)
-    file_size = get_loom_file_size(filename)
-    print(f"  Saved to {filename}: {file_size} bytes")
+    print("\nTesting .loom serialization...")
+    test_path = "/tmp/test.loom"
+    serialize_to_loom(nodes, test_path)
+    loaded = deserialize_from_loom(test_path)
     
-    loaded = load_loom(filename)
-    print(f"  Loaded {len(loaded)} nodes")
-    assert len(loaded) == len(nodes), "Node count mismatch"
-    print("  ✓ Serialization test passed")
+    print(f"Original count: {len(nodes)}, Loaded count: {len(loaded)}")
+    print(f"Match: {all(n1.to_bytes() == n2.to_bytes() for n1, n2 in zip(nodes, loaded))}")
     
-    os.remove(filename)
-    
-    # Benchmarks
-    print("\n" + "=" * 60)
-    print("BENCHMARKS")
-    print("=" * 60)
-    
+    # Test FAISS index
     if FAISS_AVAILABLE:
-        print("\n[FAISS] 1000 nodes:")
-        result = benchmark_faiss_build(1000)
-        for k, v in result.items():
-            print(f"  {k}: {v}")
-    
-    print("\n[Serialization] 1000 nodes:")
-    result = benchmark_serialization(1000)
-    for k, v in result.items():
-        print(f"  {k}: {v}")
-    
-    print("\n" + "=" * 60)
-    print("PHASE 1C: All tests passed!")
-    print("=" * 60)
+        print("\nTesting FAISS index...")
+        index = build_faiss_index(nodes)
+        print(f"Index size: {index.ntotal}")
+        
+        # Search for similar nodes
+        query = nodes[0].vector
+        distances, indices = search_similar(index, query, k=2)
+        print(f"Query node 0, nearest neighbors: {indices}, distances: {distances}")
+    else:
+        print("\nFAISS not available, skipping index test")

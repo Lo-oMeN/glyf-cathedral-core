@@ -50,7 +50,7 @@ def text_to_graph(
     embeddings: Optional[np.ndarray] = None,
     use_default_embeddings: bool = False,
     build_index: bool = True
-) -> Tuple[List[GaugeNode128], Optional]:
+) -> Tuple[List[GaugeNode128], Optional[any]]:
     """
     Convert text to geometric knowledge graph.
     
@@ -115,7 +115,7 @@ def batch_text_to_graph(
     texts: List[str],
     embeddings: Optional[np.ndarray] = None,
     use_corpus_embeddings: bool = False
-) -> Tuple[List[GaugeNode128], Optional, List[Tuple[int, int]]]:
+) -> Tuple[List[GaugeNode128], Optional[any], List[Tuple[int, int]]]:
     """
     Process multiple texts into a single combined graph.
     
@@ -244,7 +244,7 @@ class TextGraphPipeline:
         self.corpus_embeddings = compute_embeddings(token_sequences, window_size)
         self.embeddings = self.corpus_embeddings
     
-    def process(self, text: str, build_index: bool = True) -> Tuple[List[GaugeNode128], Optional]:
+    def process(self, text: str, build_index: bool = True) -> Tuple[List[GaugeNode128], Optional[any]]:
         """
         Process text through pipeline.
         
