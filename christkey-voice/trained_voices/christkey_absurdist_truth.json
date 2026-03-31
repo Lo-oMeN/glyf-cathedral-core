@@ -1,0 +1,18 @@
+{
+  "name": "christkey_absurdist_truth",
+  "voice1": "structural_base",
+  "voice2": "alan_watts",
+  "ratio": 0.25,
+  "phi_ratio": 0.44098300562505266,
+  "speech_rate": 121.77050983124842,
+  "pause_base": 0.5498903698541966,
+  "energy_dynamic_range": 0.5397542485937368,
+  "prosody_config": {
+    "pause_after_sacred": 0.4677050983124842,
+    "emphasis_level": 1.3322949016875159,
+    "pitch_variation": 0.18819660112501052,
+    "rate_variation": 0.9881966011250106,
+    "phi_cadence": true
+  },
+  "style_signature": "doja_method_watts_depth"
+}

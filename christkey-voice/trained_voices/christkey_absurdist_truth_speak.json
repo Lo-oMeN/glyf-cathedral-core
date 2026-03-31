@@ -1,0 +1,15 @@
+{
+  "voice_name": "christkey_absurdist_truth",
+  "prosody": {
+    "pause_after_sacred": 0.4677050983124842,
+    "emphasis_level": 1.3322949016875159,
+    "pitch_variation": 0.18819660112501052,
+    "rate_variation": 0.9881966011250106,
+    "phi_cadence": true
+  },
+  "piper_params": {
+    "length_scale": 1.231825342670179,
+    "noise_scale": 0.667,
+    "noise_w": 0.8
+  }
+}
