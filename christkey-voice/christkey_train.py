@@ -36,6 +36,7 @@ class VoiceBlendTrainer:
         v1, v2 = self.voices[voice1], self.voices[voice2]
         
         # φ-weighted blend
+        PHI_INV = 1 / PHI
         phi_ratio = ratio * PHI_INV + (1 - ratio) * (1 - PHI_INV)
         
         blended = {
