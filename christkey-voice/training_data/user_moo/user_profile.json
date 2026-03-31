@@ -1,0 +1,13 @@
+{
+  "name": "user_moo_personal",
+  "source": "User recordings (3 files, 140 seconds)",
+  "speech_rate": 140,
+  "pause_base": 0.25,
+  "energy_profile": [0.5, 0.7, 0.6, 0.8, 0.7, 0.9, 0.6, 0.5],
+  "voice_quality": "personal_user_rhythm",
+  "style_notes": [
+    "User's natural speaking rhythm",
+    "Personal cadence extracted from recordings",
+    "Blend with Doja Moo energy for unique voice"
+  ]
+}

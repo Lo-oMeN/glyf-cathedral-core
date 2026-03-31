@@ -1,0 +1,26 @@
+[
+  {
+    "file": "user_moo_1.ogg",
+    "duration": 90.7735,
+    "samplerate": 48000,
+    "energy_mean": 0.025394932997579344,
+    "energy_std": 0.019706057136445965,
+    "zero_crossings": 436431
+  },
+  {
+    "file": "user_moo_2.ogg",
+    "duration": 37.7335,
+    "samplerate": 48000,
+    "energy_mean": 0.021401045081584334,
+    "energy_std": 0.012253562412140184,
+    "zero_crossings": 204741
+  },
+  {
+    "file": "user_moo_3.ogg",
+    "duration": 11.6135,
+    "samplerate": 48000,
+    "energy_mean": 0.04571857508541493,
+    "energy_std": 0.029723051908523358,
+    "zero_crossings": 40376
+  }
+]

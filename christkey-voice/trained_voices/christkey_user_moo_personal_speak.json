@@ -1,0 +1,15 @@
+{
+  "voice_name": "user_doja_alan_watts_0.20",
+  "prosody": {
+    "pause_after_sacred": 0.47124611797498106,
+    "emphasis_level": 1.328753882025019,
+    "pitch_variation": 0.18583592135001265,
+    "rate_variation": 0.9858359213500127,
+    "phi_cadence": true
+  },
+  "piper_params": {
+    "length_scale": 1.1872875832486867,
+    "noise_scale": 0.667,
+    "noise_w": 0.8
+  }
+}
