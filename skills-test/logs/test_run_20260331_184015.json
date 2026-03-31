@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-03-31T18:40:15.025409",
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "pass_rate": "100.0%"
+  },
+  "results": [
+    {
+      "test": "file_write",
+      "status": "PASS",
+      "message": "Write and read successful",
+      "timestamp": "2026-03-31T18:40:14.471466"
+    },
+    {
+      "test": "file_edit",
+      "status": "PASS",
+      "message": "Edit operation successful",
+      "timestamp": "2026-03-31T18:40:14.476220"
+    },
+    {
+      "test": "path_resolution",
+      "status": "PASS",
+      "message": "Absolute path resolution works",
+      "timestamp": "2026-03-31T18:40:14.476356"
+    },
+    {
+      "test": "memory_structure",
+      "status": "PASS",
+      "message": "Memory file structure valid",
+      "timestamp": "2026-03-31T18:40:14.476742"
+    },
+    {
+      "test": "memory_append",
+      "status": "PASS",
+      "message": "Append operation safe",
+      "timestamp": "2026-03-31T18:40:14.477371"
+    },
+    {
+      "test": "voice_piper_available",
+      "status": "PASS",
+      "message": "Piper TTS available",
+      "timestamp": "2026-03-31T18:40:15.023983"
+    },
+    {
+      "test": "voice_profiles",
+      "status": "PASS",
+      "message": "Found 20 voice profiles",
+      "timestamp": "2026-03-31T18:40:15.025352"
+    },
+    {
+      "test": "cron_structure",
+      "status": "PASS",
+      "message": "Job structure valid",
+      "timestamp": "2026-03-31T18:40:15.025384"
+    },
+    {
+      "test": "cron_schedules",
+      "status": "PASS",
+      "message": "All schedule types valid",
+      "timestamp": "2026-03-31T18:40:15.025392"
+    }
+  ]
+}
