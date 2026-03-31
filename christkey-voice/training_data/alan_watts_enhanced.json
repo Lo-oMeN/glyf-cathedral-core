@@ -1,0 +1,40 @@
+{
+  "name": "alan_watts_enhanced",
+  "source": "Documented characteristics from lectures + synthetic enhancement",
+  "speech_rate": 105,
+  "pause_base": 0.7,
+  "pause_pattern": [
+    {"start": 0, "duration": 0.8, "type": "contemplative"},
+    {"start": 5, "duration": 1.2, "type": "emphasis"},
+    {"start": 12, "duration": 0.6, "type": "transition"}
+  ],
+  "energy_profile": [0.4, 0.5, 0.6, 0.8, 0.7, 0.6, 0.5, 0.4],
+  "pitch_characteristics": {
+    "base_frequency": 110,
+    "variation": 0.15,
+    "rising_phrases": ["you see", "you know", "perhaps", "may"],
+    "falling_phrases": ["in other words", "actually", "obviously"],
+    "elongated_vowels": true
+  },
+  "rhythm_patterns": {
+    "rolling_cadence": true,
+    "syllable_stretch": 1.4,
+    "phrase_overlap": 0.2,
+    "breath_between_phrases": 0.5
+  },
+  "signature_phrases": [
+    "you see",
+    "you know",
+    "in other words",
+    "actually",
+    "fundamentally"
+  ],
+  "voice_quality": "warm_contemplative_resonant",
+  "style_notes": [
+    "Elongates vowels on key words",
+    "Uses rising intonation for questions/rhetoric",
+    "Pauses after metaphors for absorption",
+    "Voice trails off at end of profound statements",
+    "Occasional chuckle integrated into rhythm"
+  ]
+}
