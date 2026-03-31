@@ -1,0 +1,17 @@
+{
+  "name": "alan_watts_doja_cat_0.80",
+  "voice1": "alan_watts",
+  "voice2": "doja_cat",
+  "ratio": 0.8,
+  "phi_ratio": 0.5708203932499368,
+  "speech_rate": 138.54101966249684,
+  "pause_base": 0.4575077640500379,
+  "energy_dynamic_range": 0.5714589803375032,
+  "prosody_config": {
+    "pause_after_sacred": 0.42875388202501896,
+    "emphasis_level": 1.371246117974981,
+    "pitch_variation": 0.21416407864998738,
+    "rate_variation": 1.0141640786499875,
+    "phi_cadence": true
+  }
+}
