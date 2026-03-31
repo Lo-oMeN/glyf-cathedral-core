@@ -1,0 +1,51 @@
+{
+  "name": "doja_cat_moo_source",
+  "source": "SoundCloud - Doja Cat - Mooo! (Official Audio)",
+  "source_url": "https://soundcloud.com/momorie/doja-cat-mooo",
+  "file": "doja_moo_source.m4a",
+  "duration_seconds": 282.424,
+  "file_size_mb": 5.5,
+  "license": "all-rights-reserved (fair-use personal training)",
+  "speech_rate": 145,
+  "pause_base": 0.2,
+  "pause_pattern": [
+    {"start": 0, "duration": 0.15, "type": "staccato_moo"},
+    {"start": 2, "duration": 0.18, "type": "bounce_beat"},
+    {"start": 5, "duration": 0.25, "type": "deadpan_phrase_end"}
+  ],
+  "energy_profile": [0.6, 0.9, 0.95, 0.7, 0.85, 0.8, 0.75, 0.9],
+  "pitch_characteristics": {
+    "base_frequency": 220,
+    "variation": 0.25,
+    "style": "deadpan_with_swagger",
+    "elongated_words": ["mooo", "cow"],
+    "staccato_phrases": ["moo moo moo", "bitch I'm a cow"]
+  },
+  "rhythm_patterns": {
+    "bounce_factor": 0.2,
+    "syncopation": true,
+    "staccato_delivery": true,
+    "phrase_overlap": 0.1,
+    "signature_cadence": "deadpan-to-bounce"
+  },
+  "signature_phrases": [
+    "Bitch, I'm a cow",
+    "Mooo",
+    "Got milk, bitch?",
+    "Moooove"
+  ],
+  "voice_quality": "playful_deadpan_swagger_absurdist",
+  "style_notes": [
+    "Deadpan delivery on absurd lyrics creates ironic distance",
+    "Staccato 'moo moo moo' as rhythmic hook",
+    "Bounce emerges from beat, not vocal energy",
+    "Confidence without taking self seriously",
+    "Meme-as-performance-art aesthetic"
+  ],
+  "training_segments": {
+    "hook_0_15": "Mooo, mooo, mooo intro - staccato rhythm",
+    "chorus_15_45": "Bitch I'm a cow - deadpan swagger",
+    "bridge_120_150": "Got milk bitch - absurdist confidence",
+    "outro_240_270": "Moooove - elongated playful delivery"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "alan_watts_doja_moo_0.70",
+  "voice1": "alan_watts",
+  "voice2": "doja_moo",
+  "ratio": 0.7,
+  "phi_ratio": 0.547213595499958,
+  "speech_rate": 129.15247584249852,
+  "pause_base": 0.4680237520633589,
+  "energy_dynamic_range": 0.46319660112501054,
+  "prosody_config": {
+    "pause_after_sacred": 0.4358359213500126,
+    "emphasis_level": 1.3641640786499873,
+    "pitch_variation": 0.2094427190999916,
+    "rate_variation": 1.0094427190999915,
+    "phi_cadence": true
+  }
+}
