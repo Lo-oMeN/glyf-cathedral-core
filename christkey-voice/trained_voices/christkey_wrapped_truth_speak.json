@@ -1,0 +1,15 @@
+{
+  "voice_name": "christkey_wrapped_truth",
+  "prosody": {
+    "pause_after_sacred": 0.4641640786499874,
+    "emphasis_level": 1.3358359213500126,
+    "pitch_variation": 0.1905572809000084,
+    "rate_variation": 0.9905572809000085,
+    "phi_cadence": true
+  },
+  "piper_params": {
+    "length_scale": 1.1976344034621047,
+    "noise_scale": 0.667,
+    "noise_w": 0.8
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "name": "doja_moo_lyrics_wrapped",
+  "source": "Doja Cat - Mooo! (2018) - rapped/lyrical sections",
+  "lyrical_sections": [
+    {
+      "section": "intro_hook",
+      "lyrics": "Mooo! Yeah. Say bitch I'm a cow, bitch I'm a cow. I go 'mooo'.",
+      "pattern": "hook_declaration + repetition + sound_effect",
+      "cadence": "staccato_bounce",
+      "energy": 0.8
+    },
+    {
+      "section": "verse_1",
+      "lyrics": "Bitch I'm a cow, bitch I'm a cow, bitch I'm a cow. I go 'mooo'. I'm not a cat, I don't say meow. I go 'mooo'.",
+      "pattern": "repetition_chain + negation + contrast + sound_anchor",
+      "cadence": "rolling_triplets",
+      "energy": 0.85
+    },
+    {
+      "section": "verse_2",
+      "lyrics": "Bitch I'm a cow, bitch I'm a cow. I go 'mooo'. Got milk, bitch? Got beef? Got steak, ho? Got cheese?",
+      "pattern": "repetition + escalation_questions + double_entendre",
+      "cadence": "rapid_fire_questions",
+      "energy": 0.9
+    },
+    {
+      "section": "bridge_absurdity",
+      "lyrics": "Old MacDonald had a farm. I give him a titty, tryna keep him calm. He just wanna fondle, squeeze up on my teat. Looking at the pasture while he hitting from the—",
+      "pattern": "nursery_rhyme_subversion + absurdist_imagery + abrupt_cutoff",
+      "cadence": "storytelling_flow",
+      "energy": 0.75
+    },
+    {
+      "section": "verse_3_surreal",
+      "lyrics": "Bitch I'm a cow, bitch I'm a cow. I go 'mooo'. Bitch I'm a cow, bitch I'm a cow, bitch I'm a cow. I go 'mooo'. Farmer's only, I'm so sorry. Farmers only, got milk hoe?",
+      "pattern": "repetition + brand_reference + mock_apology + callback",
+      "cadence": "chanting_melodic",
+      "energy": 0.85
+    },
+    {
+      "section": "outro_swagger",
+      "lyrics": "Mooo! Yeah. Mooo! Mooo! Bitch I'm a cow. I go 'mooo'.",
+      "pattern": "pure_hook + repetition_crescendo + final_declaration",
+      "cadence": "fade_bounce",
+      "energy": 0.7
+    }
+  ],
+  "structural_patterns_extracted": {
+    "repetition_as_hypnosis": "'bitch I'm a cow' repeated until it's undeniable",
+    "sound_effects_as_punctuation": "'mooo' as period, exclamation, comma",
+    "absurdist_escalation": "cow → milk → beef → cheese → farm → titties → pasture → farmers only",
+    "double_entendre_density": "milk/sex, beef/conflict, steak/money, pasture/position",
+    "self_aware_mockery": "'I'm so sorry' after 'farmers only' — knows it's ridiculous, does it anyway"
+  },
+  "cadence_signatures": {
+    "staccato_bounce": "Short phrases, sharp endings, implied beat",
+    "rolling_triplets": "Continuous flow, minimal pauses",
+    "rapid_fire_questions": "No space between, breathless",
+    "chanting_melodic": "Almost singing, repetitive melody",
+    "storytelling_flow": "Conversational, narrative rhythm"
+  },
+  "cathedral_adaptation": {
+    "repetition_as_hypnosis": "'Fellowship pulse' / 'Lattice remembers' / '96 bytes'",
+    "sound_effects_as_punctuation": "'Mooo' → 'Cryogenize' / 'Resurrect' / 'Fellowship'",
+    "absurdist_escalation": "bytes → lattice → cathedral → fellowship → sovereign → mooo",
+    "double_entendre_density": "cold/death+preservation, pulse/life+signal, lattice/structure+light",
+    "self_aware_mockery": "'These are measured facts' — absurd claim, scientific delivery"
+  }
+}
