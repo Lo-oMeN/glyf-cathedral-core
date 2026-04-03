@@ -1,0 +1,9 @@
+{"event": "phi_update", "glyph_id": "IRTF-A7B9C2D1", "scalar": 0.65, "convergence_rate": 0.045, "t": 0}
+{"event": "phi_update", "glyph_id": "IRTF-A7B9C2D1", "scalar": 0.78, "convergence_rate": 0.032, "t": 1}
+{"event": "phi_update", "glyph_id": "IRTF-A7B9C2D1", "scalar": 0.89, "convergence_rate": 0.008, "t": 2}
+{"event": "tau_triggered", "glyph_id": "IRTF-A7B9C2D1", "reason": "slope_epsilon", "threshold": 0.75, "t": 3}
+{"event": "sigma_executed", "glyph_id": "IRTF-A7B9C2D1", "determinant": 0.72, "entropy_reduction": 0.45, "compression_ratio": 0.25, "t": 4}
+{"event": "glyph_stabilized", "glyph_id": "IRTF-A7B9C2D1", "quadriline": "square_open_top", "rank": 3, "t": 5}
+{"event": "rho_initiated", "glyph_id": "IRTF-A7B9C2D1", "target": "english_semantic", "compatibility_estimate": 0.91, "t": 6}
+{"event": "resurrection_complete", "glyph_id": "IRTF-A7B9C2D1", "phi_prime": 0.823, "fidelity_loss": 0.094, "t": 7}
+{"event": "new_ql_cycle", "glyph_id": "IRTF-A7B9C2D1", "seed_from": "rho_expansion", "t": 8}

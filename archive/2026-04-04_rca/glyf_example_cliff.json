@@ -1,0 +1,86 @@
+{
+  "glyph_id": "IRTF-A7B9C2D1",
+  "phase": "collapse",
+  "timestamp": "2026-04-03T17:17:00Z",
+  "phi_coherence": {
+    "identity_projection": [0.92, 0.88, 0.95, 0.91],
+    "relational_adjacency": [
+      [0, 1, 0, 1],
+      [1, 0, 1, 0],
+      [0, 1, 0, 1],
+      [1, 0, 1, 0]
+    ],
+    "transformation_jacobian": [
+      [0.9, 0.1, 0.0, 0.0],
+      [0.2, 0.8, 0.0, 0.0],
+      [0.0, 0.0, 0.95, 0.05],
+      [0.0, 0.0, 0.1, 0.9]
+    ],
+    "field_gradient": [0.04, -0.02, 0.01, 0.00],
+    "scalar_value": 0.917,
+    "convergence_rate": 0.0003,
+    "threshold_triggered": true
+  },
+  "sigma_sacrifice": {
+    "compression_ratio": 0.25,
+    "lost_dimensions": [
+      "high_freq_noise",
+      "context_specific_ambiguity",
+      "unstable_relations"
+    ],
+    "invariant_kernel": [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
+    ],
+    "determinant_jacobian": 0.72,
+    "glyph_form": {
+      "quadriline_coords": [
+        {"x": 0, "y": 0, "angle": 90, "length": 1.0},
+        {"x": 0, "y": 1, "angle": 0, "length": 1.0},
+        {"x": 1, "y": 1, "angle": 270, "length": 1.0},
+        {"x": 1, "y": 0, "angle": 180, "length": 0.0}
+      ],
+      "entropy": 1.85,
+      "rank": 3
+    }
+  },
+  "rho_resurrection": {
+    "target_context": "cliff_edge_perception_field",
+    "expansion_valid": true,
+    "phi_prime": 0.893,
+    "functor_mapping": {
+      "type": "structure_preserving_map",
+      "domain": "glyph_space",
+      "codomain": "ql_state_space",
+      "morphism": "rho_expansion"
+    },
+    "new_field_compatibility": 0.91
+  },
+  "tau_threshold": {
+    "epsilon_slope": 0.001,
+    "min_viable_phi": 0.7,
+    "adaptive_window": 5
+  },
+  "christ_line": {
+    "connection_coefficients": [
+      [0, 0.382, 0, 0.618],
+      [0.382, 0, 0.618, 0],
+      [0, 0.618, 0, 0.382],
+      [0.618, 0, 0.382, 0]
+    ],
+    "geodesic_complete": true,
+    "curvature_scalar": 0.236
+  },
+  "semantic_content": {
+    "natural_language": "cliff",
+    "glyfoform": "VERTICAL_DROP_WITH_HORIZONTAL_LEAD",
+    "primitive_geometry": [
+      {"type": "LINE", "orientation": "vertical", "weight": 0.9},
+      {"type": "NODE", "position": "top_edge", "salience": 0.95},
+      {"type": "FIELD", "region": "abyss", "depth": "unbounded"}
+    ],
+    "metaphor_potential": ["danger", "boundary", "transition", "vertigo"]
+  }
+}

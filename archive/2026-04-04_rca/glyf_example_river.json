@@ -1,0 +1,81 @@
+{
+  "glyph_id": "IRTF-E8F4A2B3",
+  "phase": "stable",
+  "timestamp": "2026-04-03T17:18:30Z",
+  "phi_coherence": {
+    "identity_projection": [0.85, 0.79, 0.88, 0.82],
+    "relational_adjacency": [
+      [0, 1, 1, 0],
+      [1, 0, 1, 1],
+      [1, 1, 0, 1],
+      [0, 1, 1, 0]
+    ],
+    "transformation_jacobian": [
+      [0.85, 0.15, 0.0, 0.0],
+      [0.1, 0.9, 0.0, 0.0],
+      [0.0, 0.0, 0.88, 0.12],
+      [0.0, 0.0, 0.08, 0.92]
+    ],
+    "field_gradient": [0.02, 0.01, -0.01, 0.03],
+    "scalar_value": 0.835,
+    "convergence_rate": 0.0001,
+    "threshold_triggered": true
+  },
+  "sigma_sacrifice": {
+    "compression_ratio": 0.25,
+    "lost_dimensions": [
+      "turbulence_noise",
+      "temporary_currents",
+      "surface_ripples"
+    ],
+    "invariant_kernel": [
+      [0.95, 0.05, 0.0, 0.0],
+      [0.05, 0.95, 0.0, 0.0],
+      [0.0, 0.0, 0.97, 0.03],
+      [0.0, 0.0, 0.02, 0.98]
+    ],
+    "determinant_jacobian": 0.81,
+    "glyph_form": {
+      "quadriline_coords": [
+        {"x": 0, "y": 0.5, "angle": 45, "length": 0.8},
+        {"x": 0.2, "y": 0.3, "angle": 30, "length": 0.9},
+        {"x": 0.8, "y": 0.3, "angle": 330, "length": 0.9},
+        {"x": 1.0, "y": 0.5, "angle": 315, "length": 0.8}
+      ],
+      "entropy": 1.62,
+      "rank": 2
+    }
+  },
+  "rho_resurrection": {
+    "target_context": "linguistic_field_english",
+    "expansion_valid": true,
+    "phi_prime": 0.823,
+    "functor_mapping": {
+      "source_axes": ["I", "R", "T", "F"],
+      "target_axes": ["Subject", "Verb", "Object", "Context"]
+    },
+    "new_field_compatibility": 0.89
+  },
+  "tau_threshold": {
+    "epsilon_slope": 0.001,
+    "min_viable_phi": 0.75,
+    "adaptive_window": 5,
+    "trigger_reason": "convergence_rate < epsilon && phi > min_viable"
+  },
+  "christ_line": {
+    "connection_coefficients": [0.12, -0.08, 0.15, 0.00],
+    "geodesic_complete": true,
+    "curvature_scalar": 0.45,
+    "irreversibility_point": "sigma_execution"
+  },
+  "semantic_content": {
+    "natural_language": "river",
+    "glyfoform": "FLOWING_HORIZONTAL_WITH_CENTRAL_CHANNEL",
+    "primitive_geometry": [
+      {"type": "CURVE", "orientation": "horizontal", "weight": 0.85},
+      {"type": "FIELD", "region": "channel", "flow": "unidirectional"},
+      {"type": "NODE", "position": "source", "salience": 0.7}
+    ],
+    "metaphor_potential": ["time", "journey", "change", "life_force"]
+  }
+}

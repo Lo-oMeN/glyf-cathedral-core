@@ -1,0 +1,8 @@
+{"event": "phi_update", "glyph_id": "IRTF-E8F4A2B3", "scalar": 1.0, "convergence_rate": 0.0, "t": 0}
+{"event": "phi_update", "glyph_id": "IRTF-E8F4A2B3", "scalar": 1.0, "convergence_rate": 0.0, "t": 1}
+{"event": "tau_triggered", "glyph_id": "IRTF-E8F4A2B3", "reason": "convergence_detected", "threshold": 0.75, "t": 2}
+{"event": "sigma_executed", "glyph_id": "IRTF-E8F4A2B3", "determinant": 1.0, "entropy_reduction": 0.01, "compression_ratio": 0.25, "t": 3}
+{"event": "glyph_stabilized", "glyph_id": "IRTF-E8F4A2B3", "quadriline": "square_open_top", "rank": 4, "t": 4}
+{"event": "rho_initiated", "glyph_id": "IRTF-E8F4A2B3", "target": "linguistic_field_english", "compatibility_estimate": 0.89, "t": 5}
+{"event": "resurrection_complete", "glyph_id": "IRTF-E8F4A2B3", "phi_prime": 0.958, "fidelity_loss": 0.042, "t": 6}
+{"event": "new_ql_cycle", "glyph_id": "IRTF-E8F4A2B3", "seed_from": "rho_expansion", "t": 7}
