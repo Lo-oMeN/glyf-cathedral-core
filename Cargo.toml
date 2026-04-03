@@ -1,0 +1,32 @@
+[package]
+name = "glyf-cathedral"
+version = "0.7.2"
+edition = "2021"
+authors = ["Ð≡ Light⁷", "Kimi Claw"]
+description = "Geometric Language Model — 96-byte semantic encoding via φ-scaled Hamiltonian traversal"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Lo-oMeN/glyf-cathedral-core"
+keywords = ["geometric", "language", "ai", "fractal", "φ"]
+categories = ["algorithms", "data-structures", "science"]
+
+[dependencies]
+# Core — minimal dependencies for embedded/edge deployment
+# No std if building for no_std targets
+
+[dev-dependencies]
+criterion = "0.5"  # Benchmarking
+
+[[bench]]
+name = "lattice_benchmark"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true
