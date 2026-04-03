@@ -83,6 +83,25 @@ Kimi: [creates new section, adds to tracker]
 
 ---
 
+## THREAD: CULTURAL-INVARIANTS
+**Status:** Active — ongoing geometric linguistics research  
+**Last Activity:** 2026-04-02  
+**Key Points:**
+- Study of universal patterns across languages/cultures via GLM framework
+- 5-stage tokenizer extracts invariant geometric primitives
+- Phonetic → Glyphiform → Primitive → Geometric Relative → Geometric Universal
+- Connection to linguistic universals research (Moravcsik, Evans-Levinson, etc.)
+- Glyphiform preserves language identity; primitives extract universal meaning
+
+**Research Vectors:**
+1. Cross-linguistic pattern extraction (φ-harmonic structures)
+2. Cultural concept encoding (how different cultures map to same primitives)
+3. Geometric universal layer validation (canonical cross-lingual representation)
+
+**Next Action:** Set up cron job for ongoing synthesis — awaiting cadence preference from Ð≡ Light⁷
+
+---
+
 *This file updates automatically when threads activate/pause/complete.*
 
 ❤️‍🔥

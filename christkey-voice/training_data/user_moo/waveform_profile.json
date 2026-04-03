@@ -1,0 +1,52 @@
+{
+  "recordings": [
+    {
+      "file": "user_moo_1.ogg",
+      "duration": 90.7735,
+      "rms_level": 0.03188437933958355,
+      "peak_level": 0.5182194709777832,
+      "crest_factor": 16.25308322481374,
+      "zero_crossing_rate": 0.10016483334893994,
+      "spectral_centroid_hz": 5593.187577716073,
+      "dominant_formants_hz": [
+        494.0,
+        372.0,
+        196.0
+      ]
+    },
+    {
+      "file": "user_moo_2.ogg",
+      "duration": 37.7335,
+      "rms_level": 0.024665041578655008,
+      "peak_level": 0.2850644588470459,
+      "crest_factor": 11.557428676452714,
+      "zero_crossing_rate": 0.11304113056037739,
+      "spectral_centroid_hz": 4087.418628315308,
+      "dominant_formants_hz": [
+        106.0,
+        366.0,
+        383.0
+      ]
+    },
+    {
+      "file": "user_moo_3.ogg",
+      "duration": 11.6135,
+      "rms_level": 0.05446253502929643,
+      "peak_level": 0.3727647662162781,
+      "crest_factor": 6.844425548971616,
+      "zero_crossing_rate": 0.07243007419526126,
+      "spectral_centroid_hz": 2045.4564163502598,
+      "dominant_formants_hz": [
+        809.0,
+        811.0,
+        816.0
+      ]
+    }
+  ],
+  "averaged_characteristics": {
+    "rms_level": 0.037003985315845,
+    "spectral_centroid_hz": 3908.6875407938805,
+    "zero_crossing_rate": 0.0952120127015262,
+    "voice_quality": "moderate_energy_moderate_brightness"
+  }
+}

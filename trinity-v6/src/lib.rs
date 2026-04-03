@@ -22,6 +22,9 @@ pub mod narrative;
 pub mod mirror;
 pub mod geometry;
 
+// GLM (Geometric Language Model) persistence layer
+pub mod glm;
+
 // Fellowship protocol (requires std feature)
 #[cfg(feature = "std")]
 pub mod fellowship;
@@ -38,6 +41,9 @@ pub use novelty::{Oracle, NoveltyReport, NoveltyIndex, PhasePredictor, Complexit
 pub use narrative::{MorphogenPhase, NarrativeError, FellowshipResonance, VoltageStatus, Narrative};
 pub use geometry::{verify_so3_closure, sandwich_rotor, hodge_dual, verify_center_s, verify_all, VerificationReport};
 
+// GLM persistence re-exports
+pub use glm::state::{GLMState, GLMMetadata, Cryogen, Fellowship as GLMFellowship, RSEncoder, PersistenceError, FellowshipError, CheckpointPool, CheckpointHandle, SyncStatus, ConsensusState};
+
 // Axiom 16: Re-export living field types
 #[cfg(feature = "glyph-field")]
 pub use glyph_field::{GlyphField, LatticeState as VisualLatticeState, VesicaParams, FieldError};
@@ -47,6 +53,9 @@ pub const VERSION: u32 = 72;
 
 /// Compile-time verification of LatticeState size
 const _: () = assert!(core::mem::size_of::<state::LatticeState>() == 96);
+
+/// Compile-time verification of GLMState size
+const _: () = assert!(core::mem::size_of::<glm::state::GLMState>() == 96);
 
 /// Compile-time verification of φ⁷ calculation
 const _: () = {
@@ -126,6 +135,11 @@ mod tests {
     #[test]
     fn test_lattice_size() {
         assert_eq!(core::mem::size_of::<state::LatticeState>(), 96);
+    }
+    
+    #[test]
+    fn test_glm_state_size() {
+        assert_eq!(core::mem::size_of::<glm::state::GLMState>(), 96);
     }
     
     #[test]

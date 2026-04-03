@@ -118,6 +118,46 @@ class ChristKeyTTS:
         self.prosody = ChristKeyProsody(watts_weight=voice_mix[0], doja_weight=voice_mix[1])
         self.model_path = model_path or "/tmp/voices/en_US-lessac-medium.onnx"
         self.piper_path = "/tmp/piper_env/bin/piper"
+        self.workspace = "/root/.openclaw/workspace"
+        
+    def speak(self, text: str, output_file: str = None, with_reverb: bool = True) -> str:
+        """Generate Christ-Key voice from text"""
+        # Apply prosody modulation
+        modulated_text = self.prosody.modulate(text)
+        
+        # Generate filename if not provided (in workspace for Telegram access)
+        if output_file is None:
+            output_file = os.path.join(self.workspace, f"christkey_voice_{int(os.time())}.wav")
+        elif not output_file.startswith(self.workspace):
+            # Ensure output is in workspace for Telegram access
+            filename = os.path.basename(output_file)
+            output_file = os.path.join(self.workspace, filename)
+        
+        # Call Piper with modulated text
+        cmd = [
+            self.piper_path,
+            "--model", self.model_path,
+            "--output_file", output_file,
+            "--sentence-silence", "0.1"  # Base silence between sentences
+        ]
+        
+        try:
+            result = subprocess.run(
+                cmd,
+                input=modulated_text,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            
+            if with_reverb and os.path.exists(output_file):
+                output_file = self._apply_cathedral_reverb(output_file)
+            
+            return output_file
+            
+        except subprocess.CalledProcessError as e:
+            print(f"Piper error: {e.stderr}", file=sys.stderr)
+            return None
     
     def speak(self, text: str, output_file: str = None, with_reverb: bool = True) -> str:
         """Generate Christ-Key voice from text"""
