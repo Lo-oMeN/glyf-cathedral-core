@@ -1,0 +1,196 @@
+<svg viewBox="0 0 1100 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1100" height="600" fill="#0a0a0f"/>
+  
+  <!-- Title -->
+  <text x="550" y="40" text-anchor="middle" fill="#c9a227" font-family="monospace" font-size="24" font-weight="bold">THE GLM PIPELINE — 5 STAGES</text>
+  <text x="550" y="65" text-anchor="middle" fill="#888" font-family="monospace" font-size="14">From Sound to Geometric Universal</text>
+  
+  
+  <!-- STAGE 1: PHONETIC -->
+  <g transform="translate(100, 200)">
+    
+    <!-- Box -->
+    <rect x="-80" y="-80" width="160" height="160" fill="#1a1a2e" stroke="#44aaff" stroke-width="2" rx="10"/>
+    
+    
+    <text x="0" y="-90" text-anchor="middle" fill="#44aaff" font-family="monospace" font-size="16" font-weight="bold">1. PHONETIC</text>
+    
+    <!-- Sound wave visualization -->
+    <path d="M -60,0 Q -45,-20 -30,0 T 0,0 T 30,0 T 60,0" fill="none" stroke="#44aaff" stroke-width="3"/>
+    
+    <text x="0" y="50" text-anchor="middle" fill="#fff" font-family="monospace" font-size="12">"THE"</text>
+    
+    <text x="0" y="70" text-anchor="middle" fill="#888" font-family="monospace" font-size="10">[/ðə/]</text>
+    
+    
+    <text x="0" y="110" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">Sound Input</text>
+    
+  </g>
+  
+  
+  <!-- STAGE 2: GLYPHIFORM -->
+  <g transform="translate(300, 200)">
+    
+    <rect x="-80" y="-80" width="160" height="160" fill="#1a1a2e" stroke="#c9a227" stroke-width="2" rx="10"/>
+    
+    
+    <text x="0" y="-90" text-anchor="middle" fill="#c9a227" font-family="monospace" font-size="16" font-weight="bold">2. GLYPHIFORM</text>
+    
+    
+    <!-- Compound glyph representation -->
+    <g>
+      <!-- Stylized TH -->
+      
+      <path d="M -25,-25 L -25,25 M -40,-25 L -10,-25" fill="none" stroke="#c9a227" stroke-width="4" stroke-linecap="round"/>
+      
+      <path d="M -5,-25 Q 10,-35 25,-25 L 25,25" fill="none" stroke="#c9a227" stroke-width="4" stroke-linecap="round"/>
+      
+    </g>
+    
+    
+    <text x="0" y="110" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">Visual Letterform</text>
+    
+  </g>
+  
+  
+  <!-- STAGE 3: PRIMITIVE -->
+  <g transform="translate(500, 200)">
+    
+    <rect x="-80" y="-80" width="160" height="160" fill="#1a1a2e" stroke="#44ff44" stroke-width="2" rx="10"/>
+    
+    
+    <text x="0" y="-90" text-anchor="middle" fill="#44ff44" font-family="monospace" font-size="16" font-weight="bold">3. PRIMITIVE</text>
+    
+    
+    <!-- 7 primitives mini icons -->
+    <g transform="translate(0, -10)">
+      
+      <!-- Row 1 -->
+      
+      <circle cx="-40" cy="-30" r="6" fill="none" stroke="#ff4444" stroke-width="2"/>
+      
+      <circle cx="0" cy="-30" r="3" fill="#ffff44"/>
+      
+      <path d="M 35,-35 Q 40,-25 35,-15" fill="none" stroke="#44ff44" stroke-width="2"/>
+      
+      
+      <!-- Row 2 -->
+      
+      <line x1="-45" y1="20" x2="-35" y2="20" stroke="#4444ff" stroke-width="2"/>
+      
+      <polyline points="-5,15 -5,25 5,25" fill="none" stroke="#ff44ff" stroke-width="2"/>
+      
+      <circle cx="40" cy="20" r="5" fill="none" stroke="#44ffff" stroke-width="2"/>
+      
+      <ellipse cx="0" cy="50" rx="8" ry="5" fill="none" stroke="#c9a227" stroke-width="2"/>
+      
+    </g>
+    
+    
+    <text x="0" y="110" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">7 Geometric Atoms</text>
+    
+  </g>
+  
+  
+  <!-- STAGE 4: GEOMETRIC RELATIVE -->
+  <g transform="translate(700, 200)">
+    
+    <rect x="-80" y="-80" width="160" height="160" fill="#1a1a2e" stroke="#ff44ff" stroke-width="2" rx="10"/>
+    
+    
+    <text x="0" y="-90" text-anchor="middle" fill="#ff44ff" font-family="monospace" font-size="14" font-weight="bold">4. GEO RELATIVE</text>
+    
+    
+    <!-- 7-segment field visualization -->
+    <g transform="translate(0, 10) scale(0.4)">
+      
+      <circle cx="0" cy="0" r="40" fill="none" stroke="#fff" stroke-width="2"/>
+      
+      <ellipse cx="0" cy="-100" rx="50" ry="30" fill="none" stroke="#c9a227" stroke-width="2"/>
+      
+      <line x1="-100" y1="-30" x2="-100" y2="30" stroke="#4444ff" stroke-width="2"/>
+      
+      <polyline points="-60,-100 -60,-60 -20,-60" fill="none" stroke="#ff44ff" stroke-width="2"/>
+      
+      <circle cx="0" cy="100" r="40" fill="none" stroke="#44ffff" stroke-width="2"/>
+      
+      <circle cx="-80" cy="60" r="10" fill="#ffff44"/>
+      
+      <path d="M 80,40 Q 110,60 80,80" fill="none" stroke="#44ff44" stroke-width="2"/>
+      
+    </g>
+    
+    
+    <text x="0" y="110" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">Contextual Embedding</text>    
+  </g>
+  
+  
+  <!-- STAGE 5: GEOMETRIC UNIVERSAL -->
+  <g transform="translate(900, 200)">
+    
+    <rect x="-80" y="-80" width="160" height="160" fill="#1a1a2e" stroke="#44ffff" stroke-width="2" rx="10"/>
+    
+    
+    <text x="0" y="-90" text-anchor="middle" fill="#44ffff" font-family="monospace" font-size="14" font-weight="bold">5. GEO UNIVERSAL</text>
+    
+    
+    <!-- φ-harmonic structure -->
+    <g transform="translate(0, 0)">
+      <!-- Golden spiral approximation -->
+      
+      <path d="M 0,0 Q 15,-15 30,0 T 45,15 T 30,45 T 0,60 T -45,45" fill="none" stroke="#44ffff" stroke-width="2"/>
+      
+      <circle cx="0" cy="0" r="5" fill="#fff"/>
+      
+      <!-- φ markers -->
+      
+      <text x="-50" y="-50" fill="#44ffff" font-family="monospace" font-size="12">φ</text>
+      
+      <text x="50" y="50" fill="#44ffff" font-family="monospace" font-size="10">1.618</text>
+      
+    </g>
+    
+    
+    <text x="0" y="110" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">Cross-lingual Canonical</text>    
+  </g>
+  
+  
+  <!-- Arrows between stages -->
+  <g>
+    <!-- 1→2 -->
+    <path d="M 180,200 L 220,200" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <!-- 2→3 -->
+    <path d="M 380,200 L 420,200" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <!-- 3→4 -->
+    <path d="M 580,200 L 620,200" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <!-- 4→5 -->
+    <path d="M 780,200 L 820,200" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+    
+  </g>
+  
+  
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+    </marker>
+  </defs>
+  
+  
+  <!-- Bottom: 7 Geometric Attention Operators -->
+  <g transform="translate(550, 500)">
+    
+    <text x="0" y="0" text-anchor="middle" fill="#888" font-family="monospace" font-size="12">7 Geometric Attention Operators:</text>
+    
+    <text x="0" y="20" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">VesicaPiscis • Phyllotaxis • HodgeStar • GoldenAngle • CenterAnchor • ChiralFlip • FibonacciTile</text>
+    
+    <text x="0" y="40" text-anchor="middle" fill="#888" font-family="monospace" font-size="12">Multi-head = Sandwich Rotor (compose multiplicatively) — O(1) Complexity</text>
+    
+    <text x="0" y="60" text-anchor="middle" fill="#c9a227" font-family="monospace" font-size="12">"Translation happens at stage 4→5 — not word-to-word, but geometric similarity detection"</text>
+    
+  </g>
+</svg>

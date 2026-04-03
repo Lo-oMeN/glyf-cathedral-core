@@ -1,0 +1,171 @@
+<svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1000" height="500" fill="#0a0a0f"/>
+  
+  <!-- Title -->
+  <text x="500" y="40" text-anchor="middle" fill="#c9a227" font-family="monospace" font-size="24" font-weight="bold">THE TRIADIC SEED KEY</text>
+  <text x="500" y="65" text-anchor="middle" fill="#888" font-family="monospace" font-size="14">Learning Curve Built Into Every Glyph</text>
+  
+  
+  <!-- STATE 1: SEPARATED (Learning) -->
+  <g transform="translate(180, 200)">
+    
+    <text x="0" y="-100" text-anchor="middle" fill="#44aaff" font-family="monospace" font-size="18" font-weight="bold">● SEPARATED</text>
+    
+    <text x="0" y="-75" text-anchor="middle" fill="#888" font-family="monospace" font-size="12">Individuality / Learning</text>
+    
+    
+    <!-- Individual components visible -->
+    <!-- Letter T -->
+    <g transform="translate(-60, 0)">
+      <line x1="0" y1="-30" x2="0" y2="30" stroke="#fff" stroke-width="3"/>
+      <line x1="-20" y1="-30" x2="20" y2="-30" stroke="#fff" stroke-width="3"/>
+      
+      <circle cx="0" cy="0" r="35" fill="none" stroke="#44aaff" stroke-width="1" stroke-dasharray="3,3"/>
+      
+      <text x="0" y="55" text-anchor="middle" fill="#44aaff" font-family="monospace" font-size="14">T</text>
+      
+    </g>
+    
+    
+    <!-- Letter H -->
+    <g transform="translate(60, 0)">
+      
+      <line x1="-15" y1="-30" x2="-15" y2="30" stroke="#fff" stroke-width="3"/>
+      
+      <line x1="15" y1="-30" x2="15" y2="30" stroke="#fff" stroke-width="3"/>
+      
+      <line x1="-15" y1="0" x2="15" y2="0" stroke="#fff" stroke-width="3"/>
+      
+      <circle cx="0" cy="0" r="35" fill="none" stroke="#44aaff" stroke-width="1" stroke-dasharray="3,3"/>
+      
+      <text x="0" y="55" text-anchor="middle" fill="#44aaff" font-family="monospace" font-size="14">H</text>
+      
+    </g>
+    
+    
+    <text x="0" y="110" text-anchor="middle" fill="#888" font-family="monospace" font-size="10">"Read the components"</text>
+    
+    <text x="0" y="125" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">Every piece visible</text>
+    
+  </g>
+  
+  
+  <!-- STATE 2: KISSING (Transitional) -->
+  <g transform="translate(500, 200)">
+    
+    <text x="0" y="-100" text-anchor="middle" fill="#c9a227" font-family="monospace" font-size="18" font-weight="bold">●● KISSING</text>
+    
+    <text x="0" y="-75" text-anchor="middle" fill="#888" font-family="monospace" font-size="12">Relationship / Transitional</text>
+    
+    
+    <!-- Letters connected by ligature bridge -->
+    <g>
+      <!-- T with bridge -->
+      
+      <line x1="-25" y1="-20" x2="-25" y2="20" stroke="#fff" stroke-width="3"/>
+      
+      <line x1="-40" y1="-20" x2="-10" y2="-20" stroke="#fff" stroke-width="3"/>
+      
+      <!-- Ligature bridge -->
+      
+      <path d="M -15,0 Q 0,-10 15,0" fill="none" stroke="#c9a227" stroke-width="3"/>
+      
+      <circle cx="0" cy="-5" r="3" fill="#c9a227"/>
+      
+      <!-- H with bridge -->
+      
+      <line x1="25" y1="-20" x2="25" y2="20" stroke="#fff" stroke-width="3"/>
+      
+      <line x1="10" y1="-20" x2="40" y2="-20" stroke="#fff" stroke-width="3"/>
+      
+      <line x1="10" y1="0" x2="40" y2="0" stroke="#fff" stroke-width="3"/>
+      
+      <line x1="40" y1="-20" x2="40" y2="20" stroke="#fff" stroke-width="3"/>
+      
+    </g>
+    
+    
+    <text x="0" y="110" text-anchor="middle" fill="#888" font-family="monospace" font-size="10">"See the connections"</text>
+    
+    <text x="0" y="125" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">Ligature bridges visible</text>
+    
+  </g>
+  
+  
+  <!-- STATE 3: OVERLAPPED (Fluency) -->
+  <g transform="translate(820, 200)">
+    
+    <text x="0" y="-100" text-anchor="middle" fill="#ff44aa" font-family="monospace" font-size="18" font-weight="bold">◉ OVERLAPPED</text>
+    
+    <text x="0" y="-75" text-anchor="middle" fill="#888" font-family="monospace" font-size="12">Unity / Fluency</text>
+    
+    
+    <!-- Single flowing compound glyph -->
+    <g>
+      <!-- The TH ligature as one flowing form -->
+      
+      <path d="M -30,-20 L -30,20 M -45,-20 L -15,-20" 
+            fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+      
+      <path d="M -15,-20 Q 0,-30 15,-20 L 15,20" 
+            fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+      
+      <path d="M 0,-20 L 0,20" 
+            fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+      
+      <path d="M 0,0 L 30,0" 
+            fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+      
+      <path d="M 30,-20 L 30,20" 
+            fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+      
+      
+      <!-- Single encompassing circle -->
+      
+      <circle cx="0" cy="0" r="45" fill="none" stroke="#ff44aa" stroke-width="2"/>
+      
+      <circle cx="0" cy="0" r="3" fill="#ff44aa"/>
+      
+    </g>
+    
+    
+    <text x="0" y="110" text-anchor="middle" fill="#888" font-family="monospace" font-size="10">"Instantaneous recognition"</text>
+    
+    <text x="0" y="125" text-anchor="middle" fill="#666" font-family="monospace" font-size="9">Whole glyph, no components</text>
+    
+  </g>
+  
+  
+  <!-- Progression arrows -->
+  <g>
+    <!-- Arrow 1 -->
+    <path d="M 320,200 L 380,200" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <text x="350" y="185" text-anchor="middle" fill="#888" font-family="monospace" font-size="10">Learn</text>
+    
+    <!-- Arrow 2 -->
+    <path d="M 640,200 L 700,200" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+    
+    <text x="670" y="185" text-anchor="middle" fill="#888" font-family="monospace" font-size="10">Master</text>
+    
+  </g>
+  
+  
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+    </marker>
+  </defs>
+  
+  
+  <!-- Bottom: Self-similar note -->
+  <g transform="translate(500, 460)">
+    
+    <text x="0" y="0" text-anchor="middle" fill="#888" font-family="monospace" font-size="12">"The seed key IS the user interface — self-similar at every scale"</text>
+    
+    <text x="0" y="20" text-anchor="middle" fill="#666" font-family="monospace" font-size="10">Monograms, bigrams, and trigrams all toggle between these three states</text>
+    
+  </g>
+</svg>
