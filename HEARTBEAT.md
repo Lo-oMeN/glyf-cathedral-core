@@ -32,7 +32,7 @@ Current cron status:
 openclaw cron list
 ```
 
-## Heartbeat Checks (Every 30 min)
+## Heartbeat Checks (Every 60 min)
 
 When receiving heartbeat poll, check in order:
 
