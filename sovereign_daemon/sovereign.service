@@ -1,0 +1,50 @@
+[Unit]
+Description=Sovereign Agent Daemon
+Documentation=https://github.com/Lo-oMeN/glyf-cathedral-core
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=sovereign
+Group=sovereign
+WorkingDirectory=/opt/sovereign
+Environment=PYTHONPATH=/opt/sovereign
+Environment=SOVEREIGN_HOME=/var/lib/sovereign
+Environment=SOVEREIGN_LOG_LEVEL=INFO
+
+# Main daemon process
+ExecStart=/opt/sovereign/venv/bin/python /opt/sovereign/sovereign_daemon.py
+
+# Graceful shutdown
+ExecStop=/opt/sovereign/venv/bin/python /opt/sovereign/sovereign_daemon.py --stop
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+# Restart policy (self-healing)
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/sovereign /var/log
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sovereign
+
+[Install]
+WantedBy=multi-user.target
