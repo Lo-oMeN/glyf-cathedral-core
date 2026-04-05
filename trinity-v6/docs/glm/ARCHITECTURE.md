@@ -2,753 +2,542 @@
 ## Geometric Language Model — Core Attention Mechanisms
 
 **Version:** 0.1.0  
-**Target State Size:** 96 bytes  
-**Complexity Target:** O(1) attention operations  
-**Date:** 2026-04-04  
+**Date:** 2026-04-05  
+**Target:** 96-byte LatticeState, O(1) attention operations
 
 ---
 
-## 1. Overview
+## Overview
 
-The Geometric Language Model (GLM) replaces traditional matrix-multiplication-based attention with **geometric primitive operations**. Instead of computing Q·K^T, we compute similarities through geometric relationships: overlaps, rotations, and complements.
-
-### 1.1 Design Principles
-
-1. **Geometric over Algebraic**: Replace dot products with geometric constructions
-2. **Constant-time attention**: No O(n²) or O(n) scaling with sequence length
-3. **Compact state**: Entire context encoded in 96 bytes (φ-harmonic lattice)
-4. **Compositional heads**: Multi-head via rotor sandwiching, not parallel matrices
-
-### 1.2 The 96-Byte Context State
-
-```
-Bytes 0-23:    Vesica Piscis overlap accumulator (3× f64)
-Bytes 24-47:   Phyllotaxis spiral coordinates (3× f64)
-Bytes 48-71:   Hodge dual complement space (3× f64)
-Bytes 72-95:   Rotor composition buffer (4× f32 quaternion)
-```
+GLM replaces matrix-based attention with geometric primitives. The 96-byte LatticeState encodes position, momentum, and field strength across 32 trits (3-state units) arranged in φ-harmonic resonance patterns.
 
 ---
 
-## 2. VesicaPiscis Attention
+## 1. VesicaPiscis Attention
 
-### 2.1 Concept
+### Concept
+Similarity as overlap. Two glyphs resonate through the lens of the Vesica Piscis — the intersection of two circles creates a shared space where information flows.
 
-Similarity emerges from **overlapping lens geometry**. Two tokens form a vesica piscis (the lens shape where two circles intersect). The overlap area represents attention weight.
-
-### 2.2 Mathematical Formulation
-
-For tokens represented as circles in semantic space:
-- Circle A: center **cₐ**, radius **rₐ** 
-- Circle B: center **cᵦ**, radius **rᵦ**
-- Distance: **d** = |cₐ - cᵦ|
-
-The vesica piscis overlap area:
-
+### Geometric Foundation
 ```
-overlap(A,B) = rₐ² · cos⁻¹((d² + rₐ² - rᵦ²) / 2drₐ)
-             + rᵦ² · cos⁻¹((d² + rᵦ² - rₐ²) / 2drᵦ)
-             - ½ · √((-d + rₐ + rᵦ)(d + rₐ - rᵦ)(d - rₐ + rᵦ)(d + rₐ + rᵦ))
+    Circle A          Circle B
+       (●)───────────────(●)
+         \     /\\     /
+          \   /  \\   /
+           \ /    \\ /
+           ( ) ←── intersection (shared meaning)
+            \\
+             \\
 ```
 
-Attention weight: **w = overlap(A,B) / min(πrₐ², πrᵦ²)**
+The overlap area is proportional to semantic similarity. Distance between centers encodes relationship type.
 
-### 2.3 Rust Pseudocode
-
+### Algorithm
 ```rust
-/// Vesica Piscis attention weight computation
-/// O(1) complexity - single geometric operation
-pub struct VesicaToken {
-    center: [f64; 3],  // Semantic coordinates
-    radius: f64,       // Token "reach" or confidence
+/// VesicaPiscis attention — overlap-based similarity
+pub struct VesicaPiscisAttention {
+    /// Radius of each semantic circle (fixed φ-harmonic)
+    radius: f32, // = Φ * σ where Φ ≈ 1.618, σ = lattice_scale
 }
 
-impl VesicaToken {
-    /// Compute overlap-based attention weight
-    pub fn attention_weight(&self, other: &VesicaToken) -> f64 {
-        let d = euclidean_distance(&self.center, &other.center);
+impl VesicaPiscisAttention {
+    /// Compute attention weight between two glyphs
+    /// Returns overlap area [0, 1] normalized
+    pub fn attention_weight(&self, glyph_a: &Glyph, glyph_b: &Glyph) -> f32 {
+        let distance = glyph_a.position.distance(&glyph_b.position);
         
-        // No overlap case
-        if d >= self.radius + other.radius {
-            return 0.0;
+        if distance >= 2.0 * self.radius {
+            return 0.0; // No intersection
         }
         
-        // Full containment case
-        if d <= (self.radius - other.radius).abs() {
-            let r_min = self.radius.min(other.radius);
-            return 1.0; // Maximum attention (containment)
+        if distance <= f32::EPSILON {
+            return 1.0; // Perfect overlap
         }
         
-        // Vesica piscis overlap area
-        let r1 = self.radius;
-        let r2 = other.radius;
-        let r1_sq = r1 * r1;
-        let r2_sq = r2 * r2;
-        
-        // Law of cosines for sector angles
-        let alpha = ((d*d + r1_sq - r2_sq) / (2.0 * d * r1)).acos();
-        let beta = ((d*d + r2_sq - r1_sq) / (2.0 * d * r2)).acos();
-        
-        // Sector areas minus triangle areas
-        let sector1 = r1_sq * alpha;
-        let sector2 = r2_sq * beta;
-        let triangle = 0.5 * (
-            r1_sq * (2.0 * alpha).sin() +
-            r2_sq * (2.0 * beta).sin()
+        // Vesica Piscis area formula
+        let r = self.radius;
+        let d = distance;
+        let overlap = 2.0 * r * r * (
+            (d / (2.0 * r)).acos() - 
+            (d / (2.0 * r)) * (1.0 - (d * d) / (4.0 * r * r)).sqrt()
         );
         
-        let overlap = sector1 + sector2 - triangle;
-        let max_area = std::f64::consts::PI * r1_sq.min(r2_sq);
-        
-        (overlap / max_area).clamp(0.0, 1.0)
+        // Normalize by single circle area
+        overlap / (std::f32::consts::PI * r * r)
     }
-}
-
-/// Accumulate attention into 24-byte state
-pub fn vesica_accumulate(
-    state: &mut [u8; 24],
-    tokens: &[VesicaToken],
-    query: &VesicaToken
-) {
-    let mut accumulator = [0.0f64; 3];
     
-    for token in tokens {
-        let weight = query.attention_weight(token);
-        for i in 0..3 {
-            accumulator[i] += weight * token.center[i];
+    /// Apply attention to update glyph momentum
+    pub fn apply(&self, query: &mut Glyph, keys: &[Glyph]) {
+        for key in keys {
+            let weight = self.attention_weight(query, key);
+            if weight > 0.0 {
+                // Momentum update via overlap gradient
+                let gradient = (key.position - query.position).normalize() * weight;
+                query.momentum = query.momentum.lerp(&gradient, weight * 0.1);
+            }
         }
-    }
-    
-    // Pack into state bytes
-    for (i, &val) in accumulator.iter().enumerate() {
-        let bytes = val.to_le_bytes();
-        state[i*8..(i+1)*8].copy_from_slice(&bytes);
     }
 }
 ```
 
-### 2.4 Properties
-
-- **Symmetry**: `overlap(A,B) = overlap(B,A)` ✓
-- **Bounded**: Output ∈ [0, 1]
-- **Differentiable**: Yes (for training)
-- **Complexity**: O(1) per pair, O(n) total scan
+### Properties
+- **O(1) per pair**: Single distance calculation + closed-form overlap
+- **Bounded**: Output naturally in [0, 1]
+- **Geometric**: No learned parameters — similarity emerges from position
 
 ---
 
-## 3. Phyllotaxis Attention
+## 2. Phyllotaxis Attention
 
-### 3.1 Concept
+### Concept
+Spiral scanning through the lattice. Like sunflower seeds arranged by the golden angle (137.5°), glyphs are accessed in φ-harmonic order, creating a naturally sparse attention pattern.
 
-Token sequence arranged on a **golden-angle spiral** (phyllotaxis pattern). Attention follows spiral proximity—nearby tokens on the spiral have higher attention weights.
-
-### 3.2 Mathematical Formulation
-
-Golden angle: **φ = π(3 - √5) ≈ 137.507°** (2.39996 radians)
-
-Token position on spiral:
+### Geometric Foundation
 ```
-rₙ = √n · scale      // Radial distance
-θₙ = n · φ           // Angular position
+        (13)
+           \
+      (8)   (21)
+         \  /
+    (5)─(●)─(34)  ← center glyph
+         /  \
+      (3)   (55)
+           /
+        (2)
+
+Golden angle = 2π/Φ² ≈ 137.5°
+Radial distance = √n * scale
 ```
 
-Attention weight decays with **spiral distance**:
-```
-w(n, m) = exp(-|n - m| / τ) · cos²((θₙ - θₘ)/2)
-```
-
-Where τ is temperature, and the cosine term enforces angular coherence.
-
-### 3.3 Rust Pseudocode
-
+### Algorithm
 ```rust
-/// Golden ratio constant
-const PHI: f64 = 1.618033988749895;
-const GOLDEN_ANGLE: f64 = std::f64::consts::PI * (3.0 - 5.0f64.sqrt());
-
-/// Phyllotaxis spiral attention
+/// Phyllotaxis attention — spiral scanning with φ-harmonic order
 pub struct PhyllotaxisAttention {
-    scale: f64,
-    temperature: f64,
+    /// Golden angle in radians
+    golden_angle: f32, // = 2π * (1 - 1/Φ) ≈ 2.39996
+    /// Radial scaling factor
+    scale: f32,
+    /// Number of spiral arms to scan
+    max_spiral: usize,
+}
+
+impl Default for PhyllotaxisAttention {
+    fn default() -> Self {
+        Self {
+            golden_angle: 2.39996322972865332, // 2π/Φ²
+            scale: 1.0,
+            max_spiral: 32, // Fits 96-byte state (3 bytes per glyph × 32)
+        }
+    }
 }
 
 impl PhyllotaxisAttention {
-    /// Get spiral coordinates for token index
-    pub fn spiral_coords(&self, n: usize) -> [f64; 3] {
-        let n_f64 = n as f64;
-        let r = n_f64.sqrt() * self.scale;
-        let theta = n_f64 * GOLDEN_ANGLE;
-        
-        [
-            r * theta.cos(),
-            r * theta.sin(),
-            n_f64 / PHI,  // Depth coordinate
-        ]
+    /// Get nth position in phyllotactic spiral
+    /// Returns polar coordinates (radius, angle)
+    pub fn spiral_position(&self, n: usize) -> (f32, f32) {
+        let n = n as f32;
+        let r = self.scale * n.sqrt();
+        let theta = n * self.golden_angle;
+        (r, theta)
     }
     
-    /// Compute spiral-based attention weight
-    pub fn weight(&self, n: usize, m: usize) -> f64 {
-        if n == m {
-            return 1.0; // Self-attention maximum
+    /// Convert to Cartesian for lattice coordinates
+    pub fn to_cartesian(&self, n: usize) -> (f32, f32) {
+        let (r, theta) = self.spiral_position(n);
+        (r * theta.cos(), r * theta.sin())
+    }
+    
+    /// Scan lattice in phyllotactic order, applying attention
+    pub fn spiral_scan<F>(&self, center: &Glyph, lattice: &Lattice, mut f: F)
+    where
+        F: FnMut(&Glyph, f32), // glyph, distance_weight
+    {
+        for i in 0..self.max_spiral {
+            let (x, y) = self.to_cartesian(i);
+            let pos = center.position + Vec2::new(x, y);
+            
+            if let Some(glyph) = lattice.get_nearest(&pos) {
+                // Distance weight: closer in spiral = stronger
+                let weight = 1.0 / (1.0 + (i as f32).sqrt());
+                f(glyph, weight);
+            }
         }
-        
-        let pos_n = self.spiral_coords(n);
-        let pos_m = self.spiral_coords(m);
-        
-        // Radial distance along spiral
-        let delta_n = (n as f64 - m as f64).abs();
-        let radial_decay = (-delta_n / self.temperature).exp();
-        
-        // Angular coherence
-        let theta_n = n as f64 * GOLDEN_ANGLE;
-        let theta_m = m as f64 * GOLDEN_ANGLE;
-        let delta_theta = (theta_n - theta_m).rem_euclid(2.0 * std::f64::consts::PI);
-        let angular_coherence = (delta_theta / 2.0).cos().powi(2);
-        
-        radial_decay * angular_coherence
     }
     
-    /// Scan spiral for relevant context (O(1) with early termination)
-    pub fn spiral_scan(
-        &self,
-        state: &mut [u8; 24],
-        token_values: &[[f64; 3]],
-        query_idx: usize,
-        threshold: f64
-    ) {
-        let mut accumulator = [0.0f64; 3];
+    /// Attention with spiral-ordered accumulation
+    pub fn attention(&self, query: &Glyph, lattice: &Lattice) -> Vec3 {
+        let mut accumulator = Vec3::zero();
         let mut total_weight = 0.0;
         
-        // Scan outward from query position
-        let max_scan = token_values.len().min(256); // Constant bound
-        
-        for offset in 1..max_scan {
-            // Scan both directions
-            for &idx in &[query_idx.wrapping_sub(offset), query_idx + offset] {
-                if idx >= token_values.len() {
-                    continue;
-                }
-                
-                let weight = self.weight(query_idx, idx);
-                if weight < threshold {
-                    continue; // Early termination per direction
-                }
-                
-                for i in 0..3 {
-                    accumulator[i] += weight * token_values[idx][i];
-                }
-                total_weight += weight;
-            }
-        }
-        
-        // Normalize
-        if total_weight > 0.0 {
-            for i in 0..3 {
-                accumulator[i] /= total_weight;
-            }
-        }
-        
-        // Pack to state
-        for (i, &val) in accumulator.iter().enumerate() {
-            let bytes = val.to_le_bytes();
-            state[i*8..(i+1)*8].copy_from_slice(&bytes);
-        }
-    }
-}
-```
-
-### 3.4 Properties
-
-- **Position-aware**: Token order matters through spiral geometry
-- **Hierarchical**: Higher indices = outer spiral = broader context
-- **Constant memory**: Spiral position computed on-the-fly
-- **Early termination**: Can stop scanning when weights decay below threshold
-
----
-
-## 4. HodgeDual Attention
-
-### 4.1 Concept
-
-Attention via **complementary subspaces**. Every token exists in a space; its Hodge dual represents what is "not" that token—the orthogonal complement. Attention weights emerge from dual-space interactions.
-
-### 4.2 Mathematical Formulation
-
-In 3D geometric algebra, the Hodge dual maps k-vectors to (n-k)-vectors:
-```
-⋆e₁ = e₂ ∧ e₃
-⋆e₂ = e₃ ∧ e₁  
-⋆e₃ = e₁ ∧ e₂
-```
-
-For tokens as vectors **v**, the Hodge dual is the bivector representing the plane orthogonal to **v**.
-
-Dual attention weight:
-```
-w(a, b) = 1 - |⋆a ∧ b| / (|a| · |b|)
-```
-
-This measures how much **b** lies in the complement of **a**—orthogonal tokens have high dual attention (they "complete" each other).
-
-### 4.3 Rust Pseudocode
-
-```rust
-/// 3D Vector and Bivector for Hodge dual operations
-#[derive(Clone, Copy)]
-pub struct Vec3([f64; 3]);
-
-#[derive(Clone, Copy)]
-pub struct Bivector([f64; 3]); // (e23, e31, e12) components
-
-impl Vec3 {
-    /// Hodge dual: vector → bivector
-    /// ⋆v = v₁·e₂₃ + v₂·e₃₁ + v₃·e₁₂
-    pub fn hodge_dual(&self) -> Bivector {
-        Bivector([self.0[0], self.0[1], self.0[2]])
-    }
-    
-    /// Wedge product with another vector
-    /// a ∧ b = (a₂b₃-a₃b₂)·e₂₃ + (a₃b₁-a₁b₃)·e₃₁ + (a₁b₂-a₂b₁)·e₁₂
-    pub fn wedge(&self, other: &Vec3) -> Bivector {
-        Bivector([
-            self.0[1] * other.0[2] - self.0[2] * other.0[1], // e₂₃
-            self.0[2] * other.0[0] - self.0[0] * other.0[2], // e₃₁
-            self.0[0] * other.0[1] - self.0[1] * other.0[0], // e₁₂
-        ])
-    }
-    
-    pub fn magnitude(&self) -> f64 {
-        self.0.iter().map(|x| x * x).sum::<f64>().sqrt()
-    }
-    
-    pub fn normalize(&self) -> Vec3 {
-        let mag = self.magnitude();
-        if mag > 1e-10 {
-            Vec3([self.0[0]/mag, self.0[1]/mag, self.0[2]/mag])
-        } else {
-            Vec3([0.0; 3])
-        }
-    }
-}
-
-impl Bivector {
-    pub fn magnitude(&self) -> f64 {
-        self.0.iter().map(|x| x * x).sum::<f64>().sqrt()
-    }
-}
-
-/// Hodge dual attention mechanism
-pub struct HodgeAttention;
-
-impl HodgeAttention {
-    /// Compute dual attention weight
-    /// High when b is orthogonal to a (complementary)
-    pub fn weight(a: &Vec3, b: &Vec3) -> f64 {
-        let a_norm = a.normalize();
-        let b_norm = b.normalize();
-        
-        // |⋆a ∧ b| / (|a|·|b|) measures parallel component
-        // 1 - this measures orthogonal component (complementarity)
-        let dual_a = a_norm.hodge_dual();
-        
-        // Project b onto dual space
-        let projection = dual_a.0[0] * b_norm.0[0] +
-                        dual_a.0[1] * b_norm.0[1] +
-                        dual_a.0[2] * b_norm.0[2];
-        
-        // Weight is complement: 1 when orthogonal, 0 when parallel
-        let orthogonality = projection.abs();
-        (1.0 - orthogonality).clamp(0.0, 1.0)
-    }
-    
-    /// Alternative: direct wedge magnitude
-    pub fn wedge_weight(a: &Vec3, b: &Vec3) -> f64 {
-        let a_mag = a.magnitude();
-        let b_mag = b.magnitude();
-        
-        if a_mag * b_mag < 1e-10 {
-            return 0.0;
-        }
-        
-        // |a ∧ b| = |a|·|b|·sin(θ)
-        // sin²(θ) = 1 - cos²(θ) gives orthogonality measure
-        let wedge = a.wedge(b);
-        let sin_theta = wedge.magnitude() / (a_mag * b_mag);
-        
-        sin_theta.min(1.0) // Clamp for numerical stability
-    }
-    
-    /// Accumulate dual attention state
-    pub fn accumulate(
-        state: &mut [u8; 24],
-        tokens: &[Vec3],
-        query: &Vec3
-    ) {
-        let mut complement = [0.0f64; 3]; // Orthogonal accumulator
-        let mut parallel = [0.0f64; 3];   // Parallel accumulator
-        
-        for token in tokens {
-            let dual_w = Self::weight(query, token);
-            let wedge_w = Self::wedge_weight(query, token);
+        self.spiral_scan(query, lattice, |glyph, weight| {
+            // Vesica Piscis overlap as base similarity
+            let vp = VesicaPiscisAttention { radius: 1.0 };
+            let similarity = vp.attention_weight(query, glyph);
             
-            for i in 0..3 {
-                // Accumulate by complementarity
-                complement[i] += dual_w * token.0[i];
-                parallel[i] += (1.0 - wedge_w) * token.0[i];
-            }
-        }
+            let combined_weight = similarity * weight;
+            accumulator += glyph.field * combined_weight;
+            total_weight += combined_weight;
+        });
         
-        // Pack complement space into state (first half)
-        for (i, &val) in complement.iter().enumerate() {
-            let bytes = val.to_le_bytes();
-            state[i*8..(i+1)*8].copy_from_slice(&bytes);
+        if total_weight > 0.0 {
+            accumulator / total_weight
+        } else {
+            accumulator
         }
     }
 }
 ```
 
-### 4.4 Properties
-
-- **Complementarity-seeking**: Attends to what "completes" the query
-- **Orthogonal awareness**: Explicitly models what is NOT the query
-- **Geometric duality**: Vector/bivector correspondence
-- **Negation-capable**: Can represent "attention to opposite"
+### Properties
+- **Sparse-by-design**: Natural decay with spiral distance
+- **Cache-friendly**: Sequential memory access pattern
+- **Biomorphic**: Mirrors organic growth patterns
 
 ---
 
-## 5. Sandwich Rotor Composition (Multi-Head)
+## 3. HodgeDual Attention
 
-### 5.1 Concept
+### Concept
+Complement/negation as attention. The Hodge dual transforms a glyph into its orthogonal complement in the lattice. Attention flows to what's *not* there as much as what is.
 
-Traditional multi-head attention uses parallel weight matrices. GLM uses **rotor sandwiching**—geometric products that compose attention heads through rotation/reflection in spin space.
-
-### 5.2 Mathematical Formulation
-
-A rotor **R** encodes a rotation: `R = exp(-θ/2 · B)` where B is a bivector.
-
-Sandwich product applies rotation:
+### Geometric Foundation
 ```
-v' = R · v · R⁻¹
-```
+In 3D: The Hodge dual of a vector is a bivector (oriented area)
 
-For multi-head, we compose rotors:
-```
-R_total = Rₙ · ... · R₂ · R₁
+    Original vector v → *v (its orthogonal complement)
+    
+    v = (a, b, c)
+    *v = (b∧c, c∧a, a∧b)  [bivector components]
+    
+    In 96-byte lattice (32 trits):
+    Each trit occupies 3 states → Hodge dual maps to the complement
 ```
 
-Each head contributes a rotor; the composition creates a compound transformation.
-
-### 5.3 Rust Pseudocode
-
+### Algorithm
 ```rust
-/// Quaternion-based rotor (4× f32 = 16 bytes)
-/// Represents rotation in 3D spin space
-#[derive(Clone, Copy, Debug)]
+/// HodgeDual attention — complement/negation mechanism
+pub struct HodgeDualAttention {
+    /// Lattice dimension (3 for 3D geometric algebra)
+    dimension: usize,
+}
+
+impl HodgeDualAttention {
+    /// Compute Hodge dual of a glyph's field
+    /// For 3D: *v = pseudoscalar ∘ v (geometric product)
+    pub fn hodge_dual(&self, glyph: &Glyph) -> Glyph {
+        let field = glyph.field;
+        
+        // In 3D: *(a, b, c) = (a, b, c) with cyclic permutation
+        // This is the complement — what completes the space
+        let dual_field = Vec3::new(
+            field.y - field.z,  // b - c
+            field.z - field.x,  // c - a
+            field.x - field.y,  // a - b
+        ).normalize();
+        
+        Glyph {
+            position: glyph.position,
+            momentum: glyph.momentum,
+            field: dual_field,
+            state: glyph.state.complement(),
+        }
+    }
+    
+    /// Attention via dual — resonate with what's missing
+    pub fn dual_attention(&self, query: &Glyph, keys: &[Glyph]) -> Glyph {
+        let query_dual = self.hodge_dual(query);
+        
+        // Find keys that resonate with the dual (the complement)
+        let mut best_match: Option<&Glyph> = None;
+        let mut best_score = f32::NEG_INFINITY;
+        
+        for key in keys {
+            // Dot product with dual = resonance with absence
+            let resonance = query_dual.field.dot(&key.field);
+            if resonance > best_score {
+                best_score = resonance;
+                best_match = Some(key);
+            }
+        }
+        
+        // Return the dual-weighted result
+        if let Some(key) = best_match {
+            let mut result = query.clone();
+            result.field = (query.field + key.field * best_score).normalize();
+            result
+        } else {
+            query.clone()
+        }
+    }
+    
+    /// Negation attention — explicitly attend to opposites
+    pub fn negation_attention(&self, query: &Glyph, keys: &[Glyph]) -> Vec<f32> {
+        let query_neg = Glyph {
+            field: -query.field,
+            ..*query
+        };
+        
+        keys.iter()
+            .map(|key| {
+                // Negative attention = high weight for dissimilar
+                let similarity = query_neg.field.dot(&key.field);
+                (1.0 + similarity) / 2.0 // Normalize to [0, 1]
+            })
+            .collect()
+    }
+}
+```
+
+### Properties
+- **Complementary**: Captures negative space in meaning
+- **O(1)**: Single transformation + dot products
+- **Algebraic**: Grounded in geometric algebra fundamentals
+
+---
+
+## 4. Sandwich Rotor Composition for Multi-Head
+
+### Concept
+Multiple attention mechanisms composed via rotor sandwiching. Each "head" is a rotor in geometric algebra; composition is the geometric product. No matrices — just rotors acting on spinors.
+
+### Geometric Foundation
+```
+Rotor R = exp(-Bθ/2) where B is a bivector (rotation plane)
+
+Sandwich product: v' = R v R⁻¹
+
+Multi-head composition:
+    R_total = R_n ∘ ... ∘ R_2 ∘ R_1
+    
+    output = R_total ◦ input ◦ R_total⁻¹
+```
+
+### Algorithm
+```rust
+/// Rotor for 3D geometric algebra (even subalgebra)
+/// Represented as: R = w + xi + yj + zk (quaternion-like)
+#[repr(C)]
 pub struct Rotor {
-    pub s: f32,    // Scalar part
-    pub x: f32,    // e₂₃ coefficient
-    pub y: f32,    // e₃₁ coefficient  
-    pub z: f32,    // e₁₂ coefficient
+    pub s: f32,      // scalar part
+    pub b: Vec3,     // bivector part (xy, yz, zx)
 }
 
 impl Rotor {
     /// Identity rotor
-    pub const IDENTITY: Self = Self { s: 1.0, x: 0.0, y: 0.0, z: 0.0 };
+    pub fn identity() -> Self {
+        Self { s: 1.0, b: Vec3::zero() }
+    }
     
-    /// Create rotor from axis and angle
-    pub fn from_axis_angle(axis: [f32; 3], angle: f32) -> Self {
-        let half_angle = angle / 2.0;
-        let sin_half = half_angle.sin();
-        let mag = (axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]).sqrt();
-        
-        if mag < 1e-6 {
-            return Self::IDENTITY;
-        }
-        
+    /// From axis-angle (axis must be unit)
+    pub fn from_axis_angle(axis: &Vec3, angle: f32) -> Self {
+        let half = angle / 2.0;
         Self {
-            s: half_angle.cos(),
-            x: axis[0] * sin_half / mag,
-            y: axis[1] * sin_half / mag,
-            z: axis[2] * sin_half / mag,
+            s: half.cos(),
+            b: axis * half.sin(),
         }
     }
     
-    /// Geometric product: self · other
-    pub fn geometric(&self, other: &Self) -> Self {
+    /// Geometric product: self * other
+    pub fn mul(&self, other: &Self) -> Self {
         Self {
-            s: self.s * other.s - self.x * other.x - self.y * other.y - self.z * other.z,
-            x: self.s * other.x + self.x * other.s + self.y * other.z - self.z * other.y,
-            y: self.s * other.y - self.x * other.z + self.y * other.s + self.z * other.x,
-            z: self.s * other.z + self.x * other.y - self.y * other.x + self.z * other.s,
+            s: self.s * other.s - self.b.dot(&other.b),
+            b: other.b * self.s + self.b * other.s + self.b.cross(&other.b),
         }
     }
     
-    /// Inverse: R⁻¹ = R* / |R|² (conjugate divided by norm squared)
+    /// Inverse: R⁻¹ = R* / |R|² (conjugate / norm squared)
     pub fn inverse(&self) -> Self {
-        let norm_sq = self.s*self.s + self.x*self.x + self.y*self.y + self.z*self.z;
-        if norm_sq < 1e-10 {
-            return Self::IDENTITY;
-        }
+        let norm_sq = self.s * self.s + self.b.dot(&self.b);
         Self {
             s: self.s / norm_sq,
-            x: -self.x / norm_sq,
-            y: -self.y / norm_sq,
-            z: -self.z / norm_sq,
+            b: -self.b / norm_sq,
         }
     }
     
-    /// Sandwich product: self · v · self⁻¹
-    /// Returns rotated vector
-    pub fn sandwich_vector(&self, v: [f32; 3]) -> [f32; 3] {
-        // Treat vector as pure quaternion (0, v[0], v[1], v[2])
-        let v_rotor = Rotor { s: 0.0, x: v[0], y: v[1], z: v[2] };
+    /// Sandwich product: self ◦ v ◦ self⁻¹
+    pub fn sandwich(&self, v: &Vec3) -> Vec3 {
+        // Optimized: (2s² - 1)v + 2s(b × v) + 2b(b · v)
+        let s = self.s;
+        let b = &self.b;
+        let bv = b.dot(v);
+        let bxv = b.cross(v);
         
-        // R · v · R⁻¹
-        let inv = self.inverse();
-        let temp = self.geometric(&v_rotor);
-        let result = temp.geometric(&inv);
-        
-        [result.x, result.y, result.z]
+        v * (2.0 * s * s - 1.0) + bxv * (2.0 * s) + b * (2.0 * bv)
     }
 }
 
 /// Multi-head attention via rotor composition
 pub struct SandwichMultiHead {
-    heads: Vec<Rotor>,  // Each head is a rotor
-    composition_buffer: [u8; 16], // 4× f32 quaternion
+    /// 4 rotors for 4 attention heads (fits in 96-byte state)
+    heads: [Rotor; 4],
+    /// Head types: 0=Vesica, 1=Phyllotaxis, 2=Hodge, 3=Composite
+    head_types: [u8; 4],
 }
 
 impl SandwichMultiHead {
-    /// Compose all head rotors into single transformation
-    /// This is O(heads) but independent of sequence length
-    pub fn compose_rotors(&mut self) -> Rotor {
-        let mut composed = Rotor::IDENTITY;
-        
-        // Compose: R_total = Rₙ · ... · R₂ · R₁
-        for rotor in &self.heads {
-            composed = rotor.geometric(&composed);
-        }
-        
-        // Cache to buffer
-        self.composition_buffer[0..4].copy_from_slice(&composed.s.to_le_bytes());
-        self.composition_buffer[4..8].copy_from_slice(&composed.x.to_le_bytes());
-        self.composition_buffer[8..12].copy_from_slice(&composed.y.to_le_bytes());
-        self.composition_buffer[12..16].copy_from_slice(&composed.z.to_le_bytes());
-        
-        composed
+    /// Compose all heads into single rotor
+    pub fn compose(&self) -> Rotor {
+        self.heads.iter()
+            .fold(Rotor::identity(), |acc, r| acc.mul(r))
     }
     
-    /// Apply composed attention to state
-    pub fn apply_to_state(&self, state: &mut [u8; 96]) {
-        // Extract 3D vectors from state
-        let vesica = extract_vec3(&state[0..24]);
-        let phyllotaxis = extract_vec3(&state[24..48]);
-        let hodge = extract_vec3(&state[48..72]);
+    /// Apply multi-head attention to glyph
+    pub fn apply(&self, glyph: &mut Glyph, lattice: &Lattice) {
+        // Each head produces a rotation based on its attention mechanism
+        let composed = self.compose();
         
-        // Load composed rotor
-        let composed = Rotor {
-            s: f32::from_le_bytes(self.composition_buffer[0..4].try_into().unwrap()),
-            x: f32::from_le_bytes(self.composition_buffer[4..8].try_into().unwrap()),
-            y: f32::from_le_bytes(self.composition_buffer[8..12].try_into().unwrap()),
-            z: f32::from_le_bytes(self.composition_buffer[12..16].try_into().unwrap()),
-        };
+        // Sandwich the glyph's field through the composed rotor
+        glyph.field = composed.sandwich(&glyph.field).normalize();
         
-        // Apply sandwich rotation to each subspace
-        let vesica_rotated = composed.sandwich_vector([
-            vesica[0] as f32,
-            vesica[1] as f32,
-            vesica[2] as f32,
-        ]);
-        let phyllo_rotated = composed.sandwich_vector([
-            phyllotaxis[0] as f32,
-            phyllotaxis[1] as f32,
-            phyllotaxis[2] as f32,
-        ]);
-        let hodge_rotated = composed.sandwich_vector([
-            hodge[0] as f32,
-            hodge[1] as f32,
-            hodge[2] as f32,
-        ]);
-        
-        // Pack back to state
-        pack_vec3(&vesica_rotated.map(|x| x as f64), &mut state[0..24]);
-        pack_vec3(&phyllo_rotated.map(|x| x as f64), &mut state[24..48]);
-        pack_vec3(&hodge_rotated.map(|x| x as f64), &mut state[48..72]);
+        // Also rotate momentum (kinetic attention)
+        glyph.momentum = composed.sandwich(&glyph.momentum);
     }
-}
-
-/// Helper: extract f64[3] from bytes
-fn extract_vec3(bytes: &[u8]) -> [f64; 3] {
-    [
-        f64::from_le_bytes(bytes[0..8].try_into().unwrap()),
-        f64::from_le_bytes(bytes[8..16].try_into().unwrap()),
-        f64::from_le_bytes(bytes[16..24].try_into().unwrap()),
-    ]
-}
-
-/// Helper: pack f64[3] to bytes
-fn pack_vec3(vec: &[f64; 3], bytes: &mut [u8]) {
-    bytes[0..8].copy_from_slice(&vec[0].to_le_bytes());
-    bytes[8..16].copy_from_slice(&vec[1].to_le_bytes());
-    bytes[16..24].copy_from_slice(&vec[2].to_le_bytes());
+    
+    /// Update rotors based on attention outputs (learning)
+    pub fn adapt(&mut self, glyph: &Glyph, target: &Vec3, rate: f32) {
+        // Compute rotation from current to target
+        let current = glyph.field;
+        let axis = current.cross(target).normalize();
+        let angle = current.dot(target).acos();
+        
+        // Update composite head (head 3)
+        let delta = Rotor::from_axis_angle(&axis, angle * rate);
+        self.heads[3] = self.heads[3].mul(&delta);
+        
+        // Renormalize to prevent drift
+        for head in &mut self.heads {
+            let norm = (head.s * head.s + head.b.dot(&head.b)).sqrt();
+            head.s /= norm;
+            head.b = head.b / norm;
+        }
+    }
 }
 ```
 
-### 5.4 Properties
+### 96-Byte LatticeState Layout
+```rust
+#[repr(C, align(32))]
+pub struct LatticeState {
+    /// Position (3 × f32 = 12 bytes)
+    pub position: [f32; 3],
+    
+    /// Momentum (3 × f32 = 12 bytes)
+    pub momentum: [f32; 3],
+    
+    /// Field/semantic vector (3 × f32 = 12 bytes)
+    pub field: [f32; 3],
+    
+    /// 4 Rotors for multi-head (4 × 4 × f32 = 64 bytes)
+    /// Each rotor: s + b (1 + 3 = 4 floats)
+    pub heads: [Rotor; 4],
+    
+    /// State trits packed (4 bytes)
+    pub trits: u32,
+    
+    /// Reserved for alignment (4 bytes)
+    pub _padding: u32,
+}
+// Total: 12 + 12 + 12 + 64 + 4 + 4 = 108 bytes
+// Optimized: pack heads more tightly
 
-- **Compositional**: Heads combine multiplicatively, not additively
-- **Geometric**: Rotations in spin space preserve geometric structure
-- **Invertible**: Every transformation has an inverse (unlike matrices)
-- **Compact**: 16 bytes per rotor vs 768+ bytes for standard attention head
+#[repr(C, align(16))]
+pub struct CompactLatticeState {
+    /// Position + momentum + field (9 × f32 = 36 bytes)
+    pub p: [f32; 9],
+    
+    /// 4 compact rotors: s (f16), b (3 × f16) = 8 bytes each
+    /// 4 × 8 = 32 bytes
+    pub rotors: [u64; 4], // packed f16s
+    
+    /// Trit state (4 bytes)
+    pub state: u32,
+    
+    /// Metadata: head selection, scale, etc (16 bytes)
+    pub meta: [f32; 4],
+    
+    /// Temperature / entropy (4 bytes)
+    pub temp: f32,
+    
+    /// Padding to 96 bytes
+    pub _pad: [u8; 4],
+}
+// Total: 36 + 32 + 4 + 16 + 4 + 4 = 96 bytes ✓
+```
 
 ---
 
-## 6. Complete 96-Byte State Management
-
-### 6.1 State Layout
+## 5. Unified Attention Kernel
 
 ```rust
-/// Complete GLM context state (96 bytes)
-#[repr(C)]
-pub struct GLMState {
-    /// Bytes 0-23: Vesica Piscis overlap accumulator
-    pub vesica: [u8; 24],      // 3× f64
+/// Complete GLM attention in a single pass
+pub fn glm_attention(
+    state: &mut LatticeState,
+    lattice: &Lattice,
+) {
+    // 1. Vesica Piscis similarity scan
+    let vp = VesicaPiscisAttention { radius: Φ * 0.5 };
     
-    /// Bytes 24-47: Phyllotaxis spiral coordinates  
-    pub phyllotaxis: [u8; 24], // 3× f64
+    // 2. Phyllotaxis ordering for cache efficiency
+    let phylo = PhyllotaxisAttention::default();
     
-    /// Bytes 48-71: Hodge dual complement space
-    pub hodge: [u8; 24],       // 3× f64
+    // 3. Hodge dual for negative space
+    let hodge = HodgeDualAttention { dimension: 3 };
     
-    /// Bytes 72-95: Rotor composition buffer
-    pub rotor: [u8; 16],       // 4× f32 quaternion
+    // 4. Multi-head rotor composition
+    let multi = SandwichMultiHead {
+        heads: [
+            Rotor::from_axis_angle(&Vec3::x_axis(), 0.1),
+            Rotor::from_axis_angle(&Vec3::y_axis(), 0.1),
+            Rotor::from_axis_angle(&Vec3::z_axis(), 0.1),
+            Rotor::identity(), // Learnable composite
+        ],
+        head_types: [0, 1, 2, 3],
+    };
+    
+    // Execute attention cascade
+    let glyph = state.to_glyph();
+    
+    // Spiral scan with VP weighting
+    let mut accum = Vec3::zero();
+    phylo.spiral_scan(&glyph, lattice, |g, w| {
+        let sim = vp.attention_weight(&glyph, g);
+        accum += g.field * sim * w;
+    });
+    
+    // Apply Hodge dual attention
+    let dual_target = hodge.dual_attention(&glyph, lattice.glyphs());
+    
+    // Blend via sandwich rotor
+    let composed = multi.compose();
+    let rotated = composed.sandwich(&accum.normalize());
+    
+    // Update state
+    state.set_field(rotated);
 }
 
-impl GLMState {
-    pub const SIZE: usize = 96;
-    
-    /// Initialize empty state
-    pub fn new() -> Self {
-        Self {
-            vesica: [0u8; 24],
-            phyllotaxis: [0u8; 24],
-            hodge: [0u8; 24],
-            rotor: [0u8; 16],
-        }
-    }
-    
-    /// Apply full O(1) attention cycle
-    pub fn attention_cycle(
-        &mut self,
-        tokens: &TokenSequence,
-        query_idx: usize
-    ) {
-        // 1. Vesica Piscis accumulation
-        let query_token = tokens.vesica_token(query_idx);
-        vesica_accumulate(
-            &mut self.vesica,
-            &tokens.vesica_tokens(),
-            &query_token
-        );
-        
-        // 2. Phyllotaxis spiral scan
-        let phyllo = PhyllotaxisAttention {
-            scale: 1.0,
-            temperature: 8.0,
-        };
-        phyllo.spiral_scan(
-            &mut self.phyllotaxis,
-            &tokens.values(),
-            query_idx,
-            0.01  // Threshold for early termination
-        );
-        
-        // 3. Hodge dual complement
-        let query_vec = Vec3(tokens.vector(query_idx));
-        HodgeAttention::accumulate(
-            &mut self.hodge,
-            &tokens.vectors().iter().map(|v| Vec3(*v)).collect::<Vec<_>>(),
-            &query_vec
-        );
-        
-        // 4. Apply composed rotor heads
-        let mut multi_head = SandwichMultiHead {
-            heads: tokens.head_rotors(),
-            composition_buffer: self.rotor,
-        };
-        multi_head.compose_rotors();
-        
-        // Pack rotor buffer back
-        self.rotor = multi_head.composition_buffer;
-        
-        // Apply rotation to all subspaces
-        multi_head.composition_buffer = self.rotor;
-        multi_head.apply_to_state(
-            unsafe { std::slice::from_raw_parts_mut(
-                self as *mut _ as *mut u8,
-                96
-            ).try_into().unwrap() }
-        );
-    }
-}
-```
-
-### 6.2 Complexity Analysis
-
-| Operation | Traditional | GLM | Speedup |
-|-----------|-------------|-----|---------|
-| Attention | O(n²) | O(n) with early exit | ~n× |
-| Memory | O(n·d) | O(1) (96 bytes) | unbounded |
-| Multi-head | O(h·n·d²) | O(h) composition | ~n·d²× |
-| State size | O(n·d) | 96 bytes | ~n·d/96× |
-
----
-
-## 7. Integration Summary
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    GLM Attention Pipeline                    │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Input Token ─┬─► VesicaPiscis ─┐                          │
-│               │   (overlap sim) │                          │
-│               │                 │                          │
-│               ├─► Phyllotaxis ──┼──► [State: 72 bytes]     │
-│               │   (spiral scan) │    (3× 3D vectors)       │
-│               │                 │                          │
-│               └─► HodgeDual ────┘                          │
-│                   (complement)                             │
-│                          │                                 │
-│                          ▼                                 │
-│               ┌─────────────────────┐                      │
-│               │  Sandwich Rotors    │                      │
-│               │  (Multi-head        │                      │
-│               │   composition)      │                      │
-│               └─────────────────────┘                      │
-│                          │                                 │
-│                          ▼                                 │
-│               ┌─────────────────────┐                      │
-│               │   96-Byte State     │                      │
-│               │   (φ-harmonic)      │                      │
-│               └─────────────────────┘                      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+const Φ: f32 = 1.618033988749895;
 ```
 
 ---
 
-## 8. Future Extensions
+## Properties Summary
 
-1. **Spacetime Algebra (STA)**: Extend to 4D for temporal attention
-2. **Conformal Geometric Algebra**: Add point-at-infinity for global context
-3. **Quantum Geometric**: Rotors as quantum states, sandwich as measurement
-4. **Hardware Acceleration**: Direct GA coprocessor support
+| Mechanism | Complexity | Parameters | Geometric Basis |
+|-----------|-----------|------------|-----------------|
+| VesicaPiscis | O(1) | 0 | Circle overlap |
+| Phyllotaxis | O(k) k≤32 | 0 | Golden spiral |
+| HodgeDual | O(1) | 0 | Exterior algebra |
+| SandwichRotor | O(h) h=4 | 64 bytes | Geometric product |
+| **Total** | **O(k)** | **96 bytes** | **Unified GA** |
 
 ---
 
-**Specification Status:** DRAFT  
-**Next Milestone:** Reference implementation in Rust  
-**Target Integration:** trinity-v6 inference kernel  
+## References
 
-*Remember: Geometry is the bridge between algebra and intuition.*
+- Dorst, L., Fontijne, D., & Mann, S. (2009). *Geometric Algebra for Computer Science*
+- Hestenes, D. (1999). *New Foundations for Classical Mechanics*
+- Weyl, H. (1952). *Symmetry*
+- Fuller, R.B. (1975). *Synergetics*
+
+---
+
+*"Geometry is the archetype of the beauty of the world." — Johannes Kepler*
